@@ -1,0 +1,865 @@
+[
+  {
+    "level": "A1",
+    "file_path": "./A1/A1 - All Verbs/A1 - All Verbs.xlsx",
+    "columns": [
+      "Verb",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 183,
+    "preview": [
+      {
+        "Verb": "sprechen, sprach, hat gesprochen",
+        "Example Sentence (German)": "Ich spreche Deutsch.",
+        "English Meaning": "to speak",
+        "Example Sentence (English)": "I speak German.",
+        "Hindi Meaning (in Devanagari)": "बोलना",
+        "Example Sentence (Hindi, in Devanagari)": "मैं जर्मन बोलता हूँ।"
+      },
+      {
+        "Verb": "ordnen, ordnete, hat geordnet",
+        "Example Sentence (German)": "Ich ordne die Bücher.",
+        "English Meaning": "to arrange, organize",
+        "Example Sentence (English)": "I arrange the books.",
+        "Hindi Meaning (in Devanagari)": "व्यवस्थित करना",
+        "Example Sentence (Hindi, in Devanagari)": "मैं किताबें व्यवस्थित करता हूँ।"
+      },
+      {
+        "Verb": "gehören, gehörte, hat gehört",
+        "Example Sentence (German)": "Das Buch gehört mir.",
+        "English Meaning": "to belong",
+        "Example Sentence (English)": "The book belongs to me.",
+        "Hindi Meaning (in Devanagari)": "संबंधित होना",
+        "Example Sentence (Hindi, in Devanagari)": "किताब मेरी है।"
+      }
+    ]
+  },
+  {
+    "level": "A1",
+    "file_path": "./A1/A1 - Chapter 1,2,3,4/A1 - Chapter 1,2,3,4.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 785,
+    "preview": [
+      {
+        "Vocab Word": "guten Tag",
+        "Example Sentence (German)": "Guten Tag, wie geht es Ihnen?",
+        "English Meaning": "hello, good day",
+        "Example Sentence (English)": "Hello, how are you?",
+        "Hindi Meaning (in Devanagari)": "नमस्ते",
+        "Example Sentence (Hindi, in Devanagari)": "नमस्ते, आप कैसे हैं?"
+      },
+      {
+        "Vocab Word": "Deutsch",
+        "Example Sentence (German)": "Ich spreche Deutsch.",
+        "English Meaning": "German (language)",
+        "Example Sentence (English)": "I speak German.",
+        "Hindi Meaning (in Devanagari)": "जर्मन",
+        "Example Sentence (Hindi, in Devanagari)": "मैं जर्मन बोलता हूँ।"
+      },
+      {
+        "Vocab Word": "Englisch",
+        "Example Sentence (German)": "Ich lerne Englisch.",
+        "English Meaning": "English",
+        "Example Sentence (English)": "I am learning English.",
+        "Hindi Meaning (in Devanagari)": "अंग्रेजी",
+        "Example Sentence (Hindi, in Devanagari)": "मैं अंग्रेजी सीख रहा हूँ।"
+      }
+    ]
+  },
+  {
+    "level": "A1",
+    "file_path": "./A1/A1 - Chapter 5,6,7,8/A1 - Chapter 5,6,7,8.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 596,
+    "preview": [
+      {
+        "Vocab Word": "der Alltag",
+        "Example Sentence (German)": "Der Alltag ist stressig.",
+        "English Meaning": "everyday life",
+        "Example Sentence (English)": "Everyday life is stressful.",
+        "Hindi Meaning (in Devanagari)": "रोज़मर्रा की ज़िंदगी",
+        "Example Sentence (Hindi, in Devanagari)": "रोज़मर्रा की ज़िंदगी तनावपूर्ण है।"
+      },
+      {
+        "Vocab Word": "besuchen",
+        "Example Sentence (German)": "Ich besuche meine Oma.",
+        "English Meaning": "to visit",
+        "Example Sentence (English)": "I visit my grandma.",
+        "Hindi Meaning (in Devanagari)": "मिलने जाना",
+        "Example Sentence (Hindi, in Devanagari)": "मैं अपनी दादी से मिलने जाता हूँ।"
+      },
+      {
+        "Vocab Word": "die Bibliothek",
+        "Example Sentence (German)": "Ich gehe in die Bibliothek.",
+        "English Meaning": "library",
+        "Example Sentence (English)": "I go to the library.",
+        "Hindi Meaning (in Devanagari)": "पुस्तकालय",
+        "Example Sentence (Hindi, in Devanagari)": "मैं पुस्तकालय जाता हूँ।"
+      }
+    ]
+  },
+  {
+    "level": "A1",
+    "file_path": "./A1/A1 - Chapter 9,10,11,12/A1 - Chapter 9,10,11,12.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 562,
+    "preview": [
+      {
+        "Vocab Word": "das Arbeitszimmer",
+        "Example Sentence (German)": "Ich arbeite im Arbeitszimmer.",
+        "English Meaning": "study, office",
+        "Example Sentence (English)": "I work in the study.",
+        "Hindi Meaning (in Devanagari)": "कार्यकक्ष",
+        "Example Sentence (Hindi, in Devanagari)": "मैं कार्यकक्ष में काम करता हूँ।"
+      },
+      {
+        "Vocab Word": "das Bad",
+        "Example Sentence (German)": "Das Bad ist sauber.",
+        "English Meaning": "bathroom",
+        "Example Sentence (English)": "The bathroom is clean.",
+        "Hindi Meaning (in Devanagari)": "स्नानघर",
+        "Example Sentence (Hindi, in Devanagari)": "स्नानघर साफ है।"
+      },
+      {
+        "Vocab Word": "der Balkon",
+        "Example Sentence (German)": "Ich sitze auf dem Balkon.",
+        "English Meaning": "balcony",
+        "Example Sentence (English)": "I sit on the balcony.",
+        "Hindi Meaning (in Devanagari)": "बालकनी",
+        "Example Sentence (Hindi, in Devanagari)": "मैं बालकनी पर बैठता हूँ।"
+      }
+    ]
+  },
+  {
+    "level": "A2",
+    "file_path": "./A2/A2 - All Verbs/A2 - All Verbs.xlsx",
+    "columns": [
+      "Verb",
+      "Example sentence (German)",
+      "English meaning",
+      "Example sentence (English)",
+      "Hindi meaning",
+      "Example sentence (Hindi)"
+    ],
+    "num_rows": 271,
+    "preview": [
+      {
+        "Verb": "liegen, lag, ist gelegen",
+        "Example sentence (German)": "Ich liege auf dem Sofa.",
+        "English meaning": "to lie (down)",
+        "Example sentence (English)": "I lie on the sofa.",
+        "Hindi meaning": "लेटना",
+        "Example sentence (Hindi)": "मैं सोफे पर लेटता हूँ।"
+      },
+      {
+        "Verb": "reiten, ritt, ist geritten",
+        "Example sentence (German)": "Sie reitet ein Pferd.",
+        "English meaning": "to ride",
+        "Example sentence (English)": "She rides a horse.",
+        "Hindi meaning": "सवारी करना",
+        "Example sentence (Hindi)": "वह घोड़े की सवारी करती है।"
+      },
+      {
+        "Verb": "renovieren, renovierte, hat renoviert",
+        "Example sentence (German)": "Wir renovieren die Wohnung.",
+        "English meaning": "to renovate",
+        "Example sentence (English)": "We renovate the apartment.",
+        "Hindi meaning": "नवीनीकरण करना",
+        "Example sentence (Hindi)": "हम अपार्टमेंट का नवीनीकरण करते हैं।"
+      }
+    ]
+  },
+  {
+    "level": "A2",
+    "file_path": "./A2/A2 - Chapter 1,2,3,4/A2 - Chapter 1,2,3,4.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning",
+      "Example Sentence (Hindi)",
+      "Unnamed: 6"
+    ],
+    "num_rows": 449,
+    "preview": [
+      {
+        "Vocab Word": "die Ausbildung",
+        "Example Sentence (German)": "Ich beginne meine Ausbildung nächsten Monat.",
+        "English Meaning": "training/apprenticeship",
+        "Example Sentence (English)": "I start my training next month.",
+        "Hindi Meaning": "प्रशिक्षण",
+        "Example Sentence (Hindi)": "मैं अगले महीने अपना प्रशिक्षण शुरू करता हूँ।",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "die Bankkauffrau",
+        "Example Sentence (German)": "Sie arbeitet als Bankkauffrau.",
+        "English Meaning": "female bank clerk",
+        "Example Sentence (English)": "She works as a bank clerk.",
+        "Hindi Meaning": "महिला बैंक कर्मचारी",
+        "Example Sentence (Hindi)": "वह महिला बैंक कर्मचारी के रूप में काम करती है।",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "der Bankkaufmann",
+        "Example Sentence (German)": "Er ist Bankkaufmann bei der Sparkasse.",
+        "English Meaning": "male bank clerk",
+        "Example Sentence (English)": "He is a bank clerk at Sparkasse.",
+        "Hindi Meaning": "पुरुष बैंक कर्मचारी",
+        "Example Sentence (Hindi)": "वह स्पार्कसे में पुरुष बैंक कर्मचारी है।",
+        "Unnamed: 6": ""
+      }
+    ]
+  },
+  {
+    "level": "A2",
+    "file_path": "./A2/A2 - Chapter 5,6,7,8/A2 - Chapter 5,6,7,8.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning",
+      "Example Sentence (Hindi)",
+      "Unnamed: 6"
+    ],
+    "num_rows": 526,
+    "preview": [
+      {
+        "Vocab Word": "das Amt",
+        "Example Sentence (German)": "Ich muss morgen zum Amt gehen.",
+        "English Meaning": "government office",
+        "Example Sentence (English)": "I have to go to the government office tomorrow.",
+        "Hindi Meaning": "कार्यालय",
+        "Example Sentence (Hindi)": "मुझे कल कार्यालय जाना है।  ",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "die Behörde",
+        "Example Sentence (German)": "Die Behörde hat meinen Antrag genehmigt.",
+        "English Meaning": "authority",
+        "Example Sentence (English)": "The authority approved my application.",
+        "Hindi Meaning": "प्राधिकरण",
+        "Example Sentence (Hindi)": "प्राधिकरण ने मेरा आवेदन स्वीकृत किया।  ",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "die Müllabfuhr",
+        "Example Sentence (German)": "Die Müllabfuhr kommt jeden Dienstag.",
+        "English Meaning": "garbage collection",
+        "Example Sentence (English)": "The garbage truck comes every Tuesday.",
+        "Hindi Meaning": "कचरा गाड़ी",
+        "Example Sentence (Hindi)": "कचरा गाड़ी हर मंगलवार आती है।  ",
+        "Unnamed: 6": ""
+      }
+    ]
+  },
+  {
+    "level": "A2",
+    "file_path": "./A2/A2 - Chapter 9,10,11,12/A2 - Chapter 9,10,11,12.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning",
+      "Example Sentence (Hindi)",
+      "Unnamed: 6"
+    ],
+    "num_rows": 440,
+    "preview": [
+      {
+        "Vocab Word": "der Fußballschuh",
+        "Example Sentence (German)": "Ich kaufe neue Fußballschuhe für das Spiel.",
+        "English Meaning": "football shoe",
+        "Example Sentence (English)": "I'm buying new football shoes for the game.",
+        "Hindi Meaning": "फ़ुटबॉल जूता",
+        "Example Sentence (Hindi)": "मैं खेल के लिए नए फ़ुटबॉल जूते खरीद रहा हूँ।",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "das Kajak",
+        "Example Sentence (German)": "Wir mieten ein Kajak für den Fluss.",
+        "English Meaning": "kayak",
+        "Example Sentence (English)": "We're renting a kayak for the river.",
+        "Hindi Meaning": "कयाक",
+        "Example Sentence (Hindi)": "हम नदी के लिए एक कयाक किराए पर ले रहे हैं।",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "langlaufen",
+        "Example Sentence (German)": "Im Winter langlaufen wir im Wald.",
+        "English Meaning": "to cross-country ski",
+        "Example Sentence (English)": "In winter, we cross-country ski in the forest.",
+        "Hindi Meaning": "लंगस्कीइंग करना",
+        "Example Sentence (Hindi)": "सर्दियों में हम जंगल में लंगस्कीइंग करते हैं।",
+        "Unnamed: 6": ""
+      }
+    ]
+  },
+  {
+    "level": "B1",
+    "file_path": "./B1/B1 - All Verbs/B1 - All Verbs.xlsx",
+    "columns": [
+      "Verb",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)",
+      "Unnamed: 6",
+      "Unnamed: 7"
+    ],
+    "num_rows": 353,
+    "preview": [
+      {
+        "Verb": "zelten, zeltete, hat gezeltet",
+        "Example Sentence (German)": "Wir zelten im Wald.",
+        "English Meaning": "to camp",
+        "Example Sentence (English)": "We camp in the forest.",
+        "Hindi Meaning (in Devanagari)": "कैंप करना",
+        "Example Sentence (Hindi, in Devanagari)": "हम जंगल में कैंप करते हैं।",
+        "Unnamed: 6": "",
+        "Unnamed: 7": ""
+      },
+      {
+        "Verb": "dabei sein, war dabei, ist dabei gewesen",
+        "Example Sentence (German)": "Ich bin bei der Party dabei.",
+        "English Meaning": "to be there, join",
+        "Example Sentence (English)": "I'm there at the party.",
+        "Hindi Meaning (in Devanagari)": "शामिल होना",
+        "Example Sentence (Hindi, in Devanagari)": "मैं पार्टी में शामिल हूँ।",
+        "Unnamed: 6": "",
+        "Unnamed: 7": ""
+      },
+      {
+        "Verb": "erholen, erholte, hat erholt",
+        "Example Sentence (German)": "Ich erhole mich am Strand.",
+        "English Meaning": "to recover, relax",
+        "Example Sentence (English)": "I relax at the beach.",
+        "Hindi Meaning (in Devanagari)": "आराम करना",
+        "Example Sentence (Hindi, in Devanagari)": "मैं समुद्र तट पर आराम करता हूँ।",
+        "Unnamed: 6": "",
+        "Unnamed: 7": ""
+      }
+    ]
+  },
+  {
+    "level": "B1",
+    "file_path": "./B1/B1 - Chapter 1,2,3,4/B1 - Chapter 1,2,3,4.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 663,
+    "preview": [
+      {
+        "Vocab Word": "giftig",
+        "Example Sentence (German)": "Die Pflanze ist giftig.",
+        "English Meaning": "poisonous",
+        "Example Sentence (English)": "The plant is poisonous.",
+        "Hindi Meaning (in Devanagari)": "विषैली",
+        "Example Sentence (Hindi, in Devanagari)": "पौधा विषैला है।"
+      },
+      {
+        "Vocab Word": "der Himmel",
+        "Example Sentence (German)": "Der Himmel ist blau.",
+        "English Meaning": "sky",
+        "Example Sentence (English)": "The sky is blue.",
+        "Hindi Meaning (in Devanagari)": "आकाश",
+        "Example Sentence (Hindi, in Devanagari)": "आकाश नीला है।"
+      },
+      {
+        "Vocab Word": "im Freien",
+        "Example Sentence (German)": "Wir essen im Freien.",
+        "English Meaning": "outdoors",
+        "Example Sentence (English)": "We eat outdoors.",
+        "Hindi Meaning (in Devanagari)": "खुले में",
+        "Example Sentence (Hindi, in Devanagari)": "हम खुले में खाते हैं।"
+      }
+    ]
+  },
+  {
+    "level": "B1",
+    "file_path": "./B1/B1 - Chapter 5,6,7,8/B1 - Chapter 5,6,7,8.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)",
+      "Unnamed: 6"
+    ],
+    "num_rows": 720,
+    "preview": [
+      {
+        "Vocab Word": "der Abfall",
+        "Example Sentence (German)": "Der Abfall wird getrennt.",
+        "English Meaning": "waste, garbage",
+        "Example Sentence (English)": "The waste is separated.",
+        "Hindi Meaning (in Devanagari)": "कचरा",
+        "Example Sentence (Hindi, in Devanagari)": "कचरा अलग किया जाता है।",
+        "Unnamed: 6": "Der Muell/Der Abfall wird getrennt."
+      },
+      {
+        "Vocab Word": "der Autofahrer",
+        "Example Sentence (German)": "Der Autofahrer fährt schnell.",
+        "English Meaning": "driver (male)",
+        "Example Sentence (English)": "The driver drives fast.",
+        "Hindi Meaning (in Devanagari)": "कार चालक",
+        "Example Sentence (Hindi, in Devanagari)": "कार चालक तेजी से गाड़ी चलाता है।",
+        "Unnamed: 6": "Der Autofahrer faehrt schnell."
+      },
+      {
+        "Vocab Word": "die Autofahrerin",
+        "Example Sentence (German)": "Die Autofahrerin ist vorsichtig.",
+        "English Meaning": "driver (female)",
+        "Example Sentence (English)": "The driver is careful.",
+        "Hindi Meaning (in Devanagari)": "कार चालिका",
+        "Example Sentence (Hindi, in Devanagari)": "कार चालिका सावधानी से गाड़ी चलाती है।",
+        "Unnamed: 6": ""
+      }
+    ]
+  },
+  {
+    "level": "B1",
+    "file_path": "./B1/B1 - Chapter 9,10,11,12/B1 - Chapter 9,10,11,12.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)",
+      "Unnamed: 6"
+    ],
+    "num_rows": 563,
+    "preview": [
+      {
+        "Vocab Word": "das Kunststück",
+        "Example Sentence (German)": "Das Kunststück ist beeindruckend.",
+        "English Meaning": "trick, feat",
+        "Example Sentence (English)": "The feat is impressive.",
+        "Hindi Meaning (in Devanagari)": "करतब",
+        "Example Sentence (Hindi, in Devanagari)": "करतब प्रभावशाली है।",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "anregen, regte an, hat angeregt",
+        "Example Sentence (German)": "Das Bild regt zum Nachdenken an.",
+        "English Meaning": "to inspire, stimulate",
+        "Example Sentence (English)": "The picture inspires thought.",
+        "Hindi Meaning (in Devanagari)": "प्रेरित करना",
+        "Example Sentence (Hindi, in Devanagari)": "चित्र सोचने के लिए प्रेरित करता है।",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "die Betonwand",
+        "Example Sentence (German)": "Die Betonwand ist grau.",
+        "English Meaning": "concrete wall",
+        "Example Sentence (English)": "The concrete wall is gray.",
+        "Hindi Meaning (in Devanagari)": "कंक्रीट की दीवार",
+        "Example Sentence (Hindi, in Devanagari)": "कंक्रीट की दीवार ग्रे है।",
+        "Unnamed: 6": ""
+      }
+    ]
+  },
+  {
+    "level": "B2",
+    "file_path": "./B2/Aspekte/B2.1/Part 1/Part 1.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)",
+      "Unnamed: 6"
+    ],
+    "num_rows": 1451,
+    "preview": [
+      {
+        "Vocab Word": "alleinerziehend",
+        "Example Sentence (German)": "Sie ist alleinerziehend und erzieht zwei Kinder.",
+        "English Meaning": "single parent",
+        "Example Sentence (English)": "She is a single parent raising two children.",
+        "Hindi Meaning (in Devanagari)": "एकल अभिभावक",
+        "Example Sentence (Hindi, in Devanagari)": "वह एक एकल अभिभावक है और दो बच्चों की परवरिश कर रही है।",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "allerdings",
+        "Example Sentence (German)": "Ich würde gerne mitkommen, allerdings muss ich arbeiten.",
+        "English Meaning": "however",
+        "Example Sentence (English)": "I would like to come along, however, I have to work.",
+        "Hindi Meaning (in Devanagari)": "हालांकि",
+        "Example Sentence (Hindi, in Devanagari)": "मैं साथ आना पसंद करूँगा, हालांकि मुझे काम करना है।",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "aufwachsen, wuchs auf, ist aufgewachsen",
+        "Example Sentence (German)": "Ich bin auf dem Land aufgewachsen.",
+        "English Meaning": "to grow up",
+        "Example Sentence (English)": "I grew up in the countryside.",
+        "Hindi Meaning (in Devanagari)": "बड़ा होना",
+        "Example Sentence (Hindi, in Devanagari)": "मैं ग्रामीण इलाके में पला-बढ़ा हूँ।",
+        "Unnamed: 6": ""
+      }
+    ]
+  },
+  {
+    "level": "B2",
+    "file_path": "./B2/Aspekte/B2.1/Part 2/Part 2.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)",
+      "Unnamed: 6"
+    ],
+    "num_rows": 1028,
+    "preview": [
+      {
+        "Vocab Word": "der-die Erntehelfer-in",
+        "Example Sentence (German)": "Im Sommer arbeiten viele Erntehelfer auf den Feldern.",
+        "English Meaning": "picker, harvest helper",
+        "Example Sentence (English)": "In the summer, many harvest helpers work in the fields.",
+        "Hindi Meaning (in Devanagari)": "फसल काटने वाला सहायक",
+        "Example Sentence (Hindi, in Devanagari)": "गर्मियों में, कई फसल काटने वाले सहायक खेतों में काम करते हैं।",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "der Fahrradkurier",
+        "Example Sentence (German)": "Der Fahrradkurier lieferte das Paket schnell aus.",
+        "English Meaning": "bicycle messenger",
+        "Example Sentence (English)": "The bicycle messenger delivered the package quickly.",
+        "Hindi Meaning (in Devanagari)": "साइकिल कूरियर",
+        "Example Sentence (Hindi, in Devanagari)": "साइकिल कूरियर ने पैकेज जल्दी से पहुँचा दिया।",
+        "Unnamed: 6": ""
+      },
+      {
+        "Vocab Word": "das Maskottchen",
+        "Example Sentence (German)": "Jeder Sportverein hat sein eigenes Maskottchen.",
+        "English Meaning": "mascot",
+        "Example Sentence (English)": "Every sports club has its own mascot.",
+        "Hindi Meaning (in Devanagari)": "शुभंकर",
+        "Example Sentence (Hindi, in Devanagari)": "हर स्पोर्ट्स क्लब का अपना शुभंकर होता है।",
+        "Unnamed: 6": ""
+      }
+    ]
+  },
+  {
+    "level": "B2",
+    "file_path": "./B2/Aspekte/B2.1/verbs/verbs.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 323,
+    "preview": [
+      {
+        "Vocab Word": "aufwachsen, wuchs auf, ist aufgewachsen",
+        "Example Sentence (German)": "Ich bin in einem kleinen Dorf aufgewachsen.",
+        "English Meaning": "to grow up",
+        "Example Sentence (English)": "I grew up in a small village.",
+        "Hindi Meaning (in Devanagari)": "बड़ा होना",
+        "Example Sentence (Hindi, in Devanagari)": "मैं एक छोटे से गाँव में पला-बढ़ा हूँ।"
+      },
+      {
+        "Vocab Word": "sich freuen, freute sich, hat sich gefreut",
+        "Example Sentence (German)": "Ich freue mich auf deinen Besuch.",
+        "English Meaning": "to be happy, look forward to",
+        "Example Sentence (English)": "I am looking forward to your visit.",
+        "Hindi Meaning (in Devanagari)": "खुश होना",
+        "Example Sentence (Hindi, in Devanagari)": "मैं तुम्हारी यात्रा का इंतजार कर रहा हूँ।"
+      },
+      {
+        "Vocab Word": "schlagen, schlug, hat geschlagen",
+        "Example Sentence (German)": "Die Uhr hat gerade Mitternacht geschlagen.",
+        "English Meaning": "to hit, strike",
+        "Example Sentence (English)": "The clock has just struck midnight.",
+        "Hindi Meaning (in Devanagari)": "मारना, बजना",
+        "Example Sentence (Hindi, in Devanagari)": "घड़ी में अभी-अभी आधी रात बजी है।"
+      }
+    ]
+  },
+  {
+    "level": "B2",
+    "file_path": "./B2/Aspekte/B2.2/Part 1/Part 1.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)",
+      "Unnamed: 6",
+      "Unnamed: 7"
+    ],
+    "num_rows": 1214,
+    "preview": [
+      {
+        "Vocab Word": "die Vorstellung",
+        "Example Sentence (German)": "Meine Vorstellung von Heimat ist, wo meine Familie ist.",
+        "English Meaning": "idea, conception",
+        "Example Sentence (English)": "My idea of home is where my family is.",
+        "Hindi Meaning (in Devanagari)": "विचार, कल्पना",
+        "Example Sentence (Hindi, in Devanagari)": "घर के बारे में मेरा विचार है, जहाँ मेरा परिवार है।",
+        "Unnamed: 6": "",
+        "Unnamed: 7": ""
+      },
+      {
+        "Vocab Word": "das Zitat",
+        "Example Sentence (German)": "Das ist ein berühmtes Zitat von Albert Einstein.",
+        "English Meaning": "quote",
+        "Example Sentence (English)": "That is a famous quote from Albert Einstein.",
+        "Hindi Meaning (in Devanagari)": "उद्धरण",
+        "Example Sentence (Hindi, in Devanagari)": "यह अल्बर्ट आइंस्टीन का एक प्रसिद्ध उद्धरण है।",
+        "Unnamed: 6": "",
+        "Unnamed: 7": ""
+      },
+      {
+        "Vocab Word": "das Fernweh",
+        "Example Sentence (German)": "Wenn ich alte Urlaubsfotos ansehe, bekomme ich Fernweh.",
+        "English Meaning": "wanderlust",
+        "Example Sentence (English)": "When I look at old vacation photos, I get wanderlust.",
+        "Hindi Meaning (in Devanagari)": "घूमने की इच्छा",
+        "Example Sentence (Hindi, in Devanagari)": "जब मैं पुरानी छुट्टियों की तस्वीरें देखता हूँ, तो मुझे घूमने की इच्छा होती है।",
+        "Unnamed: 6": "",
+        "Unnamed: 7": ""
+      }
+    ]
+  },
+  {
+    "level": "B2",
+    "file_path": "./B2/Aspekte/B2.2/Part 2/Part 2.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 1025,
+    "preview": [
+      {
+        "Vocab Word": "kurios",
+        "Example Sentence (German)": "Er hat mir eine kuriose Geschichte erzählt.",
+        "English Meaning": "curious, strange",
+        "Example Sentence (English)": "He told me a curious story.",
+        "Hindi Meaning (in Devanagari)": "अजीब, विचित्र",
+        "Example Sentence (Hindi, in Devanagari)": "उसने मुझे एक अजीब कहानी सुनाई।"
+      },
+      {
+        "Vocab Word": "der Oberbegriff",
+        "Example Sentence (German)": "„Obst“ ist der Oberbegriff für Äpfel, Bananen und Orangen.",
+        "English Meaning": "generic term, hypernym",
+        "Example Sentence (English)": "Fruit\" is the generic term for apples, bananas, and oranges.",
+        "Hindi Meaning (in Devanagari)": "सामान्य शब्द",
+        "Example Sentence (Hindi, in Devanagari)": "\"फल\" सेब, केले और संतरे के लिए सामान्य शब्द है।"
+      },
+      {
+        "Vocab Word": "der-die Schwager-Schwägerin",
+        "Example Sentence (German)": "Mein Schwager ist der Bruder meiner Frau.",
+        "English Meaning": "brother-in-law-sister-in-law",
+        "Example Sentence (English)": "My brother-in-law is my wife's brother.",
+        "Hindi Meaning (in Devanagari)": "साला-देवर-जीजा-साली-ननद",
+        "Example Sentence (Hindi, in Devanagari)": "मेरा साला मेरी पत्नी का भाई है।"
+      }
+    ]
+  },
+  {
+    "level": "B2",
+    "file_path": "./B2/Aspekte/B2.2/verbs/verbs.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning (in Devanagari)",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 430,
+    "preview": [
+      {
+        "Vocab Word": "auflösen, löste auf, hat aufgelöst",
+        "Example Sentence (German)": "Er hat sein Bankkonto aufgelöst.",
+        "English Meaning": "to dissolve, to close down",
+        "Example Sentence (English)": "He has closed his bank account.",
+        "Hindi Meaning (in Devanagari)": "समाप्त करना, भंग करना",
+        "Example Sentence (Hindi, in Devanagari)": "उसने अपना बैंक खाता समाप्त कर दिया है।"
+      },
+      {
+        "Vocab Word": "beantragen, beantragte, hat beantragt",
+        "Example Sentence (German)": "Ich habe ein Visum für die USA beantragt.",
+        "English Meaning": "to apply for",
+        "Example Sentence (English)": "I have applied for a visa for the USA.",
+        "Hindi Meaning (in Devanagari)": "आवेदन करना",
+        "Example Sentence (Hindi, in Devanagari)": "मैंने संयुक्त राज्य अमेरिका के लिए वीजा के लिए आवेदन किया है।"
+      },
+      {
+        "Vocab Word": "eröffnen, eröffnete, hat eröffnet",
+        "Example Sentence (German)": "Sie hat ein neues Geschäft eröffnet.",
+        "English Meaning": "to open",
+        "Example Sentence (English)": "She has opened a new store.",
+        "Hindi Meaning (in Devanagari)": "खोलना",
+        "Example Sentence (Hindi, in Devanagari)": "उसने एक नई दुकान खोली है।"
+      }
+    ]
+  },
+  {
+    "level": "B2",
+    "file_path": "./B2/Kontext/B2.1/B1 Plus/Part 1/Part 1.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 1226,
+    "preview": [
+      {
+        "Vocab Word": "der Nachtmensch",
+        "Example Sentence (German)": "Ich bin ein Nachtmensch und arbeite am besten spät abends.",
+        "English Meaning": "night owl",
+        "Example Sentence (English)": "I'm a night owl and I work best late at night.",
+        "Hindi Meaning": "रात का उल्लू (रात में जागने वाला इंसान)",
+        "Example Sentence (Hindi, in Devanagari)": "मैं एक रात का उल्लू हूँ और देर रात में सबसे अच्छा काम करता हूँ।"
+      },
+      {
+        "Vocab Word": "spontan",
+        "Example Sentence (German)": "Wir haben uns spontan entschieden, ins Kino zu gehen.",
+        "English Meaning": "spontaneous",
+        "Example Sentence (English)": "We spontaneously decided to go to the cinema.",
+        "Hindi Meaning": "सहज",
+        "Example Sentence (Hindi, in Devanagari)": "हमने सहज रूप से सिनेमा जाने का फैसला किया।"
+      },
+      {
+        "Vocab Word": "der Tagmensch",
+        "Example Sentence (German)": "Mein Mann ist ein Tagmensch und steht früh auf.",
+        "English Meaning": "early bird",
+        "Example Sentence (English)": "My husband is an early bird and wakes up early.",
+        "Hindi Meaning": "सुबह जल्दी जागने वाला इंसान",
+        "Example Sentence (Hindi, in Devanagari)": "मेरा पति सुबह जल्दी जागने वाला इंसान है और सुबह जल्दी उठता है।"
+      }
+    ]
+  },
+  {
+    "level": "B2",
+    "file_path": "./B2/Kontext/B2.2/Part 1/Part 1.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 1113,
+    "preview": [
+      {
+        "Vocab Word": "der Akku",
+        "Example Sentence (German)": "Mein Handy-Akku ist leer.",
+        "English Meaning": "the battery",
+        "Example Sentence (English)": "My phone battery is dead.",
+        "Hindi Meaning": "बैटरी",
+        "Example Sentence (Hindi, in Devanagari)": "मेरे फोन की बैटरी खत्म हो गई है।"
+      },
+      {
+        "Vocab Word": "auf jeden Fall",
+        "Example Sentence (German)": "Kommst du mit? Ja, auf jeden Fall!",
+        "English Meaning": "in any case, definitely",
+        "Example Sentence (English)": "Are you coming? Yes, definitely!",
+        "Hindi Meaning": "ज़रूर, निश्चित रूप से",
+        "Example Sentence (Hindi, in Devanagari)": "क्या तुम आ रहे हो? हाँ, ज़रूर!"
+      },
+      {
+        "Vocab Word": "aufschnappen, schnappte auf, hat aufgeschnappt",
+        "Example Sentence (German)": "Ich habe ein Gerücht aufgeschnappt.",
+        "English Meaning": "to overhear, to catch wind of",
+        "Example Sentence (English)": "I overheard a rumor.",
+        "Hindi Meaning": "कान में पड़ना, सुन लेना",
+        "Example Sentence (Hindi, in Devanagari)": "मेरे कान में एक अफवाह पड़ गई।"
+      }
+    ]
+  },
+  {
+    "level": "B2",
+    "file_path": "./B2/Kontext/B2.2/Part 2/Part 2.xlsx",
+    "columns": [
+      "Vocab Word",
+      "Example Sentence (German)",
+      "English Meaning",
+      "Example Sentence (English)",
+      "Hindi Meaning",
+      "Example Sentence (Hindi, in Devanagari)"
+    ],
+    "num_rows": 32,
+    "preview": [
+      {
+        "Vocab Word": "einen Sinn bekommen",
+        "Example Sentence (German)": "Meine Arbeit hat für mich einen neuen Sinn bekommen.",
+        "English Meaning": "to gain meaning, make sense",
+        "Example Sentence (English)": "My work has acquired a new meaning for me.",
+        "Hindi Meaning": "अर्थ प्राप्त करना",
+        "Example Sentence (Hindi, in Devanagari)": "मेरे काम को मेरे लिए एक नया अर्थ मिला है।"
+      },
+      {
+        "Vocab Word": "in Erfüllung gehen",
+        "Example Sentence (German)": "Sein großer Traum ist endlich in Erfüllung gegangen.",
+        "English Meaning": "to come true (a wish, a dream)",
+        "Example Sentence (English)": "His big dream has finally come true.",
+        "Hindi Meaning": "सत्य होना, पूरा होना",
+        "Example Sentence (Hindi, in Devanagari)": "उसका बड़ा सपना आखिरकार पूरा हो गया है।"
+      },
+      {
+        "Vocab Word": "überfordert",
+        "Example Sentence (German)": "Ich bin mit der Menge an Aufgaben überfordert.",
+        "English Meaning": "overburdened, overwhelmed",
+        "Example Sentence (English)": "I am overwhelmed with the amount of tasks.",
+        "Hindi Meaning": "अत्यधिक बोझिल, अभिभूत",
+        "Example Sentence (Hindi, in Devanagari)": "मैं कामों की संख्या से अभिभूत हूँ।"
+      }
+    ]
+  }
+]
