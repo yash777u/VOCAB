@@ -57,14 +57,19 @@ export default function App() {
 
   useEffect(() => {
     let active = true
-    Promise.all([
-      fetch('/api/library').then(async (response) => {
-        if (!response.ok) throw new Error('The vocabulary library could not be loaded.')
-        return response.json() as Promise<WorkbookSummary[]>
-      }),
-      fetch('/api/saved-words').then((response) => response.json() as Promise<Record<string, SavedWord>>),
-    ]).then(([books, saved]) => {
+    fetch('/api/library').then(async (response) => {
+      if (!response.ok) throw new Error(`The vocabulary library request failed (${response.status}).`)
+      const contentType = response.headers.get('content-type') ?? ''
+      if (!contentType.includes('application/json')) throw new Error('The deployment returned a page instead of library data. Redeploy the latest commit to Vercel.')
+      return response.json() as Promise<WorkbookSummary[]>
+    }).then((books) => {
       if (!active) return
+      let saved: Record<string, SavedWord> = {}
+      try {
+        saved = JSON.parse(window.localStorage.getItem('german-vocab-saved-words') ?? '{}') as Record<string, SavedWord>
+      } catch {
+        window.localStorage.removeItem('german-vocab-saved-words')
+      }
       setLibrary(books)
       setSavedWords(saved)
       setWorkbookId(books[0]?.id ?? '')
@@ -138,9 +143,7 @@ export default function App() {
 
   function persistSaved(next: Record<string, SavedWord>) {
     setSavedWords(next)
-    fetch('/api/saved-words', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(next) })
-      .then((response) => { if (!response.ok) throw new Error() })
-      .catch(() => setError('Saved words could not be written to disk.'))
+    window.localStorage.setItem('german-vocab-saved-words', JSON.stringify(next))
   }
 
   function toggleSaved(row: WordRow, book: WorkbookSummary) {
