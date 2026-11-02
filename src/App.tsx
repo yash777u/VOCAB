@@ -86,8 +86,10 @@ export default function App() {
     setWorkbook(null)
     fetch(`/api/workbook?id=${encodeURIComponent(workbookId)}`)
       .then(async (response) => {
+        const contentType = response.headers.get('content-type') ?? ''
+        if (!contentType.includes('application/json')) throw new Error('The deployment returned a page instead of workbook data. Check the Vercel API routes and redeploy the latest commit.')
         const payload = await response.json()
-        if (!response.ok) throw new Error(payload.error ?? 'This workbook could not be loaded.')
+        if (!response.ok) throw new Error(payload.error ?? `This workbook could not be loaded (${response.status}).`)
         return payload as WorkbookData
       })
       .then((data) => {
