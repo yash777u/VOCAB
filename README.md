@@ -1,7 +1,12 @@
-# 🇩🇪 German Vocab Studio — Setup & Run Guide
+# German Vocab Studio
 
-A Streamlit app to study German vocabulary from your Excel files,
-with inline audio playback, dark/light mode, and multi-level support (A1 → B2).
+A React vocabulary studio for the Excel workbooks and audio files in this folder. It includes searchable A1–B2 study lists, row and sentence audio, saved words, a text builder, and page quizzes. Workbook data stays in the existing folders; saved words are stored locally in `saved_words.json`.
+
+## Run the app
+
+Install [Node.js 18 or newer](https://nodejs.org/) and npm, then run `bash start.sh` on Linux/macOS or double-click `start.bat` on Windows. The first run installs the JavaScript dependencies. Open [http://localhost:5173](http://localhost:5173) if it does not open automatically. To start manually, run `npm install` once and then `npm run dev`.
+
+To make a production build, run `npm run build`, then `npm start`.
 
 ---
 
@@ -54,7 +59,9 @@ Audio files should be named with a numeric prefix matching the row number:
 
 ---
 
-## ⚙️ First-Time Setup
+## ⚙️ Legacy Streamlit setup
+
+The React app above is the current interface. The old Streamlit implementation remains in `app.py` for reference; the launch scripts start React.
 
 ### Step 1 — Make sure Python is installed
 
@@ -128,6 +135,18 @@ This installs:
 ---
 
 ## ▶️ Running the App
+
+Saved words are stored in `saved_words.json` next to `app.py`, grouped by the
+source Excel file and row. The file is created the first time a word is saved.
+In Study, use the star on each row to save or remove that word. The Saved words
+section lists saved entries. Text builder lets you choose words from the current
+page, choose Excel columns, set separators, edit the generated text, and download
+it as a text file.
+
+For folders named `single/` and `both/`, numbered clips are matched to Excel row
+numbers. Row audio can play the word clip, the combined clip, or both in sequence.
+Files in `Sentences/` such as `Part 1.mpga` are full recordings rather than
+row-level clips, so they have a separate sentence-track player.
 
 Every time you want to use the app:
 
