@@ -17,7 +17,7 @@ app.get('/api/workbook', async (request, response) => {
   const workbook = findWorkbooks().find((item) => item.id === request.query.id)
   if (!workbook) return response.status(404).json({ error: 'Workbook not found.' })
   try {
-    response.json(await workbookData(workbook))
+    response.json(await workbookData(workbook, { includeAudio: true }))
   } catch (error) {
     console.error(`Could not read ${workbook.id}:`, error)
     response.status(500).json({ error: 'This workbook could not be read.' })
