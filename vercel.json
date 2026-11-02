@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/[...route].js": {
+      "includeFiles": ["A1/**/*.xlsx", "A2/**/*.xlsx", "B1/**/*.xlsx", "B2/**/*.xlsx"]
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
