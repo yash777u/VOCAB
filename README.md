@@ -1,226 +1,27 @@
 # German Vocab Studio
 
-A React vocabulary studio for the Excel workbooks and audio files in this folder. It includes searchable A1–B2 study lists, row and sentence audio, saved words, a text builder, and page quizzes. Workbook data stays in the existing folders; saved words are stored locally in `saved_words.json`.
+A React vocabulary studio for the Excel workbooks and audio files in this folder. Browse A1–B2 lists, search words and examples, listen to row and sentence audio, save vocabulary, build custom text, and quiz yourself.
 
-## Run the app
+## Run
 
-Install [Node.js 18 or newer](https://nodejs.org/) and npm, then run `bash start.sh` on Linux/macOS or double-click `start.bat` on Windows. The first run installs the JavaScript dependencies. Open [http://localhost:5173](http://localhost:5173) if it does not open automatically. To start manually, run `npm install` once and then `npm run dev`.
+Install [Node.js 18 or newer](https://nodejs.org/) and npm. On Linux or macOS run `bash start.sh`; on Windows run `start.bat`. The first run installs the JavaScript dependencies and starts the app at [http://localhost:5173](http://localhost:5173).
 
-To make a production build, run `npm run build`, then `npm start`.
+To start manually, run `npm install` once and then `npm run dev`. To create and run a production build, use `npm run build` followed by `npm start`.
 
----
+## Vocabulary data
 
-## 📁 Required Folder Structure
+The app discovers `.xlsx` workbooks recursively under `A1/`, `A2/`, `B1/`, and `B2/`. It reads the first worksheet and detects German, English, Hindi, and example-sentence columns by their headers. Keep the existing level, workbook, and audio folders in place.
 
-Your `VOCAB` folder must look like this — the app auto-discovers everything inside:
+Numbered audio files are matched to workbook row numbers, for example `single/1_guten Tag.mp3` or `both/1_guten Tag.mp3`. The row audio selector can play the word clip, the combined clip, or both in sequence. Audio files under a `Sentences/` folder are shown as separate full-track players.
 
-```
-VOCAB/
-├── app.py                  ← the app (this file lives here)
-├── requirements.txt
-├── README.md
-│
-├── A1/
-│   ├── A1 - All Verbs/
-│   │   ├── A1 - All Verbs.xlsx
-│   │   └── audios/         ← audio files named like  1_guten Tag.mp3
-│   ├── A1 - Chapter 1,2,3,4/
-│   │   ├── A1 - Chapter 1,2,3,4.xlsx
-│   │   └── audios/
-│   └── ... (more chapters)
-│
-├── A2/   (same structure)
-├── B1/   (same structure)
-└── B2/
-    ├── Aspekte/
-    │   ├── B2.1/
-    │   │   ├── Part 1/
-    │   │   │   ├── Part 1.xlsx
-    │   │   │   └── audios/
-    │   │   └── ...
-    │   └── B2.2/ ...
-    └── Kontext/ ...
-```
+Saved words are written to the local `saved_words.json` file and are excluded from Git. The text builder exports selected workbook fields as a `.txt` file.
 
-### Excel Column Format (columns A–F)
+## Project commands
 
-| A | B | C | D | E | F |
-|---|---|---|---|---|---|
-| Vocab Word / Verb | Example Sentence (German) | English Meaning | Example Sentence (English) | Hindi Meaning | Example Sentence (Hindi) |
-
-### Audio File Naming
-
-Audio files should be named with a numeric prefix matching the row number:
-```
-1_guten Tag.mp3
-2_Deutsch.mp3
-3_Englisch.mp3
-```
-
----
-
-## ⚙️ Legacy Streamlit setup
-
-The React app above is the current interface. The old Streamlit implementation remains in `app.py` for reference; the launch scripts start React.
-
-### Step 1 — Make sure Python is installed
-
-```bash
-python3 --version
-# Should be 3.9 or higher
-```
-
-If not installed → download from https://www.python.org/downloads/
-
----
-
-### Step 2 — Navigate to the VOCAB folder
-
-```bash
-cd /path/to/your/VOCAB
-# Example on Linux/Mac:  cd ~/Downloads/Audio-Learning/VOCAB
-# Example on Windows:    cd C:\Users\YourName\Downloads\Audio-Learning\VOCAB
-```
-
----
-
-### Step 3 — Create a virtual environment (do this ONCE)
-
-**Linux / macOS:**
-```bash
-python3 -m venv venv
-```
-
-**Windows:**
-```cmd
-python -m venv venv
-```
-
-This creates a `venv/` folder inside your VOCAB directory.
-
----
-
-### Step 4 — Activate the virtual environment
-
-**Linux / macOS:**
-```bash
-source venv/bin/activate
-```
-
-**Windows (Command Prompt):**
-```cmd
-venv\Scripts\activate
-```
-
-**Windows (PowerShell):**
-```powershell
-venv\Scripts\Activate.ps1
-```
-
-You'll see `(venv)` appear at the start of your terminal prompt.
-
----
-
-### Step 5 — Install dependencies (do this ONCE after activating)
-
-```bash
-pip install -r requirements.txt
-```
-
-This installs:
-- `streamlit` — the web UI framework
-- `pandas` — reads Excel files
-- `openpyxl` — Excel engine for pandas
-
----
-
-## ▶️ Running the App
-
-Saved words are stored in `saved_words.json` next to `app.py`, grouped by the
-source Excel file and row. The file is created the first time a word is saved.
-In Study, use the star on each row to save or remove that word. The Saved words
-section lists saved entries. Text builder lets you choose words from the current
-page, choose Excel columns, set separators, edit the generated text, and download
-it as a text file.
-
-For folders named `single/` and `both/`, numbered clips are matched to Excel row
-numbers. Row audio can play the word clip, the combined clip, or both in sequence.
-Files in `Sentences/` such as `Part 1.mpga` are full recordings rather than
-row-level clips, so they have a separate sentence-track player.
-
-Every time you want to use the app:
-
-### Step 1 — Activate the virtual environment (if not already active)
-
-```bash
-# Linux / macOS
-source venv/bin/activate
-
-# Windows CMD
-venv\Scripts\activate
-```
-
-### Step 2 — Run
-
-```bash
-streamlit run app.py
-```
-
-The app will open automatically in your browser at:
-```
-http://localhost:8501
-```
-
-To stop the app: press `Ctrl + C` in the terminal.
-
----
-
-## 🚀 Quick One-Line Run (after first-time setup)
-
-**Linux / macOS** — save this as `start.sh` in the VOCAB folder:
-```bash
-#!/bin/bash
-source venv/bin/activate
-streamlit run app.py
-```
-Then run it with:
-```bash
-bash start.sh
-```
-
-**Windows** — save this as `start.bat` in the VOCAB folder:
-```batch
-@echo off
-call venv\Scripts\activate
-streamlit run app.py
-pause
-```
-Then just double-click `start.bat`.
-
----
-
-## 🔧 Troubleshooting
-
-| Problem | Fix |
+| Command | Purpose |
 |---|---|
-| `command not found: streamlit` | Make sure venv is activated (`source venv/bin/activate`) |
-| `ModuleNotFoundError: openpyxl` | Run `pip install -r requirements.txt` again |
-| App shows blank / no levels | Make sure `app.py` is inside the `VOCAB/` folder, not inside A1/A2 etc. |
-| B2 chapters not showing | They'll appear — the app searches B2 recursively (nested folders are fine) |
-| Audio not playing | Check that audio files are in a subfolder of the chapter and named `N_word.mp3` |
-| Port 8501 already in use | Run `streamlit run app.py --server.port 8502` |
+| `npm run dev` | Start the React app and local workbook API |
+| `npm run build` | Type-check and create the production bundle in `dist/` |
+| `npm start` | Serve the production build |
 
----
-
-## 📦 Dependencies Summary
-
-```
-streamlit  >= 1.30   (tested on 1.56.0)
-pandas     >= 2.0    (tested on 3.0.2)
-openpyxl   >= 3.1    (tested on 3.1.5)
-Python     >= 3.9    (tested on 3.12.3)
-```
-
----
-
-*Made with ❤️ for German learning.*
+The app is implemented with React, Vite, TypeScript, and a small Express API. No Python runtime is required.
