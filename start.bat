@@ -1,20 +1,22 @@
 @echo off
-:: German Vocab Studio — Quick Start for Windows
-:: Double-click this file to run the app
-
 cd /d "%~dp0"
 
-if not exist "venv\" (
-    echo First-time setup: creating virtual environment...
-    python -m venv venv
-    call venv\Scripts\activate
-    echo Installing dependencies...
-    pip install -r requirements.txt
-    echo Setup complete!
-) else (
-    call venv\Scripts\activate
+where node >nul 2>nul
+if errorlevel 1 (
+    echo Node.js 18 or newer is required to run German Vocab Studio.
+    pause
+    exit /b 1
+)
+
+if not exist "node_modules\" (
+    echo Installing the React app dependencies...
+    call npm install
+    if errorlevel 1 (
+        pause
+        exit /b 1
+    )
 )
 
 echo Starting German Vocab Studio...
-streamlit run app.py
+call npm run dev
 pause

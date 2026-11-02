@@ -1,13 +1,14 @@
 """German Vocabulary Study App v6 — streamlit run app.py"""
-import os, glob, re, base64, math
+import os, glob, re, base64, math, json, random
 import streamlit as st
 import pandas as pd
 import streamlit.components.v1 as components
 
 ROOT          = os.path.dirname(os.path.abspath(__file__))
 TOP_LEVELS    = ["A1", "A2", "B1", "B2"]
-ROWS_PER_PAGE = 50
+ROWS_PER_PAGE = 20
 AUDIO_EXTS    = {".mp3", ".wav", ".ogg", ".m4a", ".mpga"}
+SAVED_WORDS_FILE = os.path.join(ROOT, "saved_words.json")
 
 st.set_page_config(page_title="🇩🇪 German Vocab Studio", page_icon="🎧",
                    layout="wide", initial_sidebar_state="collapsed")
@@ -154,34 +155,25 @@ def load_excel(path):
 
 @st.cache_data(show_spinner=False)
 def index_audio(audio_dirs_tuple):
-    by_stem, by_index = {}, {}
-    dirs_sorted = sorted(audio_dirs_tuple,
-        key=lambda d: (0 if os.path.basename(d).lower()=="single" else
-                       1 if os.path.basename(d).lower()=="audios" else 2))
-    for adir in dirs_sorted:
+    audio = {"word": {}, "both": {}, "sentence_tracks": []}
+    for adir in sorted(audio_dirs_tuple):
         if not os.path.isdir(adir): continue
+        folder = os.path.basename(adir).lower()
+        if folder == "sentences":
+            audio["sentence_tracks"].extend(
+                os.path.join(adir, name) for name in sorted(os.listdir(adir))
+                if os.path.splitext(name)[1].lower() in AUDIO_EXTS
+            )
+            continue
+        category = "both" if folder == "both" else "word"
         for fname in sorted(os.listdir(adir)):
             if os.path.splitext(fname)[1].lower() not in AUDIO_EXTS: continue
             path = os.path.join(adir, fname)
             stem = os.path.splitext(fname)[0].strip()
             m = re.match(r'^(\d+)[_\s]+(.*)', stem)
             if m:
-                idx = int(m.group(1)); word = m.group(2).strip()
-                if idx not in by_index:   by_index[idx] = path
-                if word.lower() not in by_stem: by_stem[word.lower()] = path
-                first = word.split(",")[0].strip().lower()
-                if first and first not in by_stem: by_stem[first] = path
-            else:
-                if stem.lower() not in by_stem: by_stem[stem.lower()] = path
-    return by_stem, by_index
-
-def resolve_audio(row_1based, german_val, by_stem, by_index):
-    g = german_val.strip()
-    if not g: return by_index.get(row_1based)
-    for key in [g.lower(), g.split(",")[0].strip().lower(),
-                g.split()[0].lower() if g else ""]:
-        if key in by_stem: return by_stem[key]
-    return by_index.get(row_1based)
+                audio[category].setdefault(int(m.group(1)), path)
+    return audio
 
 def auto_cols(df):
     cols = df.columns.tolist()
@@ -201,6 +193,54 @@ def auto_cols(df):
 
 def b64(path):
     with open(path,"rb") as f: return base64.b64encode(f.read()).decode()
+
+def audio_control_html(paths):
+        sources = []
+        for path in paths:
+                ext = os.path.splitext(path)[1].lower().lstrip(".")
+                mime = {"mp3": "mpeg", "wav": "wav", "ogg": "ogg",
+                                "m4a": "mp4", "mpga": "mpeg"}.get(ext, "mpeg")
+                sources.append(f"data:audio/{mime};base64,{b64(path)}")
+        label = "▶ Word → Both" if len(sources) > 1 else "▶ Play"
+        return f"""<button id="play" onclick="playSequence()">{label}</button>
+<style>
+body{{margin:0;font:13px sans-serif}}
+button{{width:100%;height:38px;border:0;border-radius:8px;background:{BTN_BG};
+color:{BTN_CLR};font-weight:600;cursor:pointer}}
+button:hover{{background:{BTN_HOV}}}
+</style>
+<script>
+const sources={json.dumps(sources)};
+let audio=null,index=0;
+const button=document.getElementById('play');
+function playNext(){{
+    if(index>=sources.length){{button.textContent={json.dumps(label)};audio=null;return}}
+    audio=new Audio(sources[index++]);
+    audio.onended=playNext;
+    audio.onerror=playNext;
+    audio.play().catch(()=>{{button.textContent='Audio unavailable';}});
+    button.textContent='■ Stop';
+}}
+function playSequence(){{
+    if(audio&&!audio.paused){{audio.pause();audio.currentTime=0;audio=null;index=0;
+        button.textContent={json.dumps(label)};return}}
+    index=0;playNext();
+}}
+</script>"""
+
+def load_saved_words():
+    try:
+        with open(SAVED_WORDS_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+def save_saved_words(words):
+    temp_path = SAVED_WORDS_FILE + ".tmp"
+    with open(temp_path, "w", encoding="utf-8") as f:
+        json.dump(words, f, ensure_ascii=False, indent=2)
+    os.replace(temp_path, SAVED_WORDS_FILE)
 
 def esc(s):
     return str(s).replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace('"',"&quot;")
@@ -247,23 +287,49 @@ st.divider()
 # ── Load data ─────────────────────────────────────────────────────────────────
 xlsx_path, audio_dirs = structure[level][chapter]
 df = load_excel(xlsx_path)
-by_stem, by_idx = index_audio(tuple(audio_dirs))
+audio_assets = index_audio(tuple(audio_dirs))
 cols = auto_cols(df)
 col_de, col_en, col_hi = cols["german"], cols["english"], cols["hindi"]
 col_de_s, col_en_s, col_hi_s = cols["de_sent"], cols["en_sent"], cols["hi_sent"]
 
-audio_map: dict = {}
-for i, row in df.iterrows():
-    p = resolve_audio(i+1, str(row.get(col_de,"")), by_stem, by_idx)
-    if p: audio_map[i] = p
+audio_map: dict = {
+    i: audio_assets["word"].get(i + 1) or audio_assets["both"].get(i + 1)
+    for i in range(len(df))
+    if audio_assets["word"].get(i + 1) or audio_assets["both"].get(i + 1)
+}
 
 match_pct = int(100 * len(audio_map) / max(1, len(df)))
 
 # ── Metrics ───────────────────────────────────────────────────────────────────
-m1, m2 = st.columns(2)
+saved_words = load_saved_words()
+m1, m2, m3 = st.columns(3)
 m1.metric("Total Words", len(df))
 m2.metric("Audio Coverage", f"{match_pct}%")
+m3.metric("Saved Words", len(saved_words))
 st.divider()
+
+section = st.radio("Section", ["Study", "Saved words", "Text builder"],
+                   horizontal=True, label_visibility="collapsed", key="main_section")
+if section == "Saved words":
+    st.subheader("Saved words")
+    if saved_words:
+        for key, item in list(saved_words.items()):
+            values = item.get("values", {})
+            star_col, detail_col = st.columns([0.12, 4])
+            with star_col:
+                if st.button("★", key=f"remove_saved_{key}", help="Remove saved word"):
+                    del saved_words[key]
+                    save_saved_words(saved_words)
+                    st.rerun()
+            with detail_col:
+                st.markdown(
+                    f"**{values.get('Verb', values.get('Vocab Word', 'Saved word'))}**  ·  "
+                    f"{values.get('English Meaning', '')}"
+                )
+                st.caption(f"{item.get('level', '')} · {item.get('chapter', '')}")
+    else:
+        st.info("Your saved words will appear here.")
+    st.stop()
 
 # ── Search ────────────────────────────────────────────────────────────────────
 search = st.text_input("s", placeholder="🔍  Search any column …",
@@ -310,6 +376,54 @@ with pc:
 orig_indices = df_view.index.tolist()[start:end]
 df_page = df_view.iloc[start:end]
 
+# ── Section and workbook context ──────────────────────────────────────────────
+workbook_key = os.path.relpath(xlsx_path, ROOT)
+if section == "Text builder":
+    st.subheader(f"Build text · {level} · {chapter}")
+    selected_rows = st.multiselect(
+        "Choose words from this page",
+        orig_indices,
+        format_func=lambda i: str(df.loc[i].get(col_de, "")).strip(),
+        key=f"text_rows_{workbook_key}_{page}",
+    )
+    available_fields = [c for c in df.columns if not c.startswith("Unnamed")]
+    default_fields = [c for c in [col_de, col_en, col_de_s, col_hi] if c in available_fields]
+    selected_fields = st.multiselect(
+        "Choose text fields",
+        available_fields,
+        default=default_fields,
+        key=f"text_fields_{workbook_key}",
+    )
+    field_separator = st.selectbox(
+        "Separate fields with", [" — ", " | ", ": ", "New line"],
+        key=f"text_field_separator_{workbook_key}",
+    )
+    row_separator = st.selectbox(
+        "Separate words with", ["New line", "Blank line"],
+        key=f"text_row_separator_{workbook_key}",
+    )
+    field_separator = "\n" if field_separator == "New line" else field_separator
+    row_separator = "\n\n" if row_separator == "Blank line" else "\n"
+    generated_text = row_separator.join(
+        field_separator.join(str(df.loc[i].get(field, "")).strip()
+                             for field in selected_fields
+                             if str(df.loc[i].get(field, "")).strip())
+        for i in selected_rows
+    )
+    output_key = f"text_output_{workbook_key}_{page}"
+    selection_key = f"text_selection_{workbook_key}_{page}"
+    selection_signature = (
+        tuple(selected_rows), tuple(selected_fields), field_separator, row_separator
+    )
+    if st.session_state.get(selection_key) != selection_signature:
+        st.session_state[output_key] = generated_text
+        st.session_state[selection_key] = selection_signature
+    output = st.text_area("Generated text · editable and copyable",
+                          height=280, key=output_key)
+    st.download_button("Download text", output, file_name=f"{level}_{chapter}_vocabulary.txt",
+                       mime="text/plain", disabled=not output.strip())
+    st.stop()
+
 # ── Base64 encode audio for this page ────────────────────────────────────────
 page_b64: dict = {}
 for oi in orig_indices:
@@ -317,110 +431,75 @@ for oi in orig_indices:
         try: page_b64[oi] = b64(audio_map[oi])
         except Exception: pass
 
-# ── Build HTML rows ───────────────────────────────────────────────────────────
-rows_html = []
-for dp, oi in enumerate(orig_indices):
+audio_mode = st.selectbox(
+    "Row audio",
+    ["Word → Both", "Word only", "Both only"],
+    help="Sentence tracks are full recordings and are listed separately below.",
+    key=f"audio_mode_{workbook_key}",
+)
+st.caption("☆ saves a word · row audio follows the selected mode")
+for oi in orig_indices:
     row = df.loc[oi]
-    c_a = esc(str(row.get(col_de,  "")).strip())
-    c_b = esc(str(row.get(col_de_s,"")).strip()) if col_de_s else ""
-    c_c = esc(str(row.get(col_en,  "")).strip())
-    c_d = esc(str(row.get(col_en_s,"")).strip()) if col_en_s else ""
-    c_e = esc(str(row.get(col_hi,  "")).strip())
-    c_f = esc(str(row.get(col_hi_s,"")).strip()) if col_hi_s else ""
+    word_key = f"{workbook_key}::{oi}"
+    star_col, audio_col, word_col, meaning_col = st.columns([0.12, 0.26, 2.2, 1.5])
+    with star_col:
+        if st.button("★" if word_key in saved_words else "☆",
+                     key=f"star_{workbook_key}_{oi}",
+                     help="Remove from saved" if word_key in saved_words else "Save word"):
+            if word_key in saved_words:
+                del saved_words[word_key]
+            else:
+                saved_words[word_key] = {
+                    "workbook": workbook_key,
+                    "level": level,
+                    "chapter": chapter,
+                    "row": int(oi) + 1,
+                    "values": {str(column): str(value)
+                               for column, value in row.items()},
+                }
+            save_saved_words(saved_words)
+            st.rerun()
+    with audio_col:
+        single_audio = audio_assets["word"].get(oi + 1)
+        both_audio = audio_assets["both"].get(oi + 1)
+        row_audio = {
+            "Word → Both": [single_audio, both_audio],
+            "Word only": [single_audio],
+            "Both only": [both_audio],
+        }[audio_mode]
+        row_audio = [path for path in row_audio if path]
+        if row_audio:
+            components.html(audio_control_html(row_audio), height=44, scrolling=False)
+        else:
+            st.caption("No audio")
+    with word_col:
+        st.markdown(f"**{str(row.get(col_de, '')).strip()}**")
+        if col_de_s:
+            st.caption(str(row.get(col_de_s, "")).strip())
+    with meaning_col:
+        st.markdown(str(row.get(col_en, "")).strip())
+        if col_hi:
+            st.caption(str(row.get(col_hi, "")).strip())
+    with st.expander("Examples and translations", expanded=False):
+        detail_cols = st.columns(3)
+        for detail_col, field in zip(
+            detail_cols, [col_en_s, col_hi_s, col_hi]
+        ):
+            with detail_col:
+                if field:
+                    st.markdown(f"**{field}**")
+                    st.write(str(row.get(field, "")).strip())
 
-    if oi in page_b64:
-        ext  = os.path.splitext(audio_map[oi])[1].lstrip(".") or "mpeg"
-        mime = {"mp3":"mpeg","wav":"wav","ogg":"ogg","m4a":"mp4","mpga":"mpeg"}.get(ext,"mpeg")
-        audio_cell = (
-            f'<audio id="a{oi}" src="data:audio/{mime};base64,{page_b64[oi]}" preload="none"></audio>'
-            f'<button class="play-btn" onclick="playRow({oi})">'
-            f'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
-            f' stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
-            f'<circle cx="12" cy="12" r="10"/>'
-            f'<polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>'
-            f'</svg></button>')
-    else:
-        audio_cell = '<span class="no-aud">—</span>'
-
-    bg = T_STRIPE if dp % 2 == 0 else T_BG
-    rows_html.append(
-        f'<tr style="background:{bg}">'
-        f'<td class="cg">{audio_cell}</td>'
-        f'<td class="ca">{c_a}</td>'
-        f'<td class="cb">{c_b}</td>'
-        f'<td class="cc">{c_c}</td>'
-        f'<td class="cd">{c_d}</td>'
-        f'<td class="ce">{c_e}</td>'
-        f'<td class="cf">{c_f}</td>'
-        f'</tr>')
-
-table_h = min(780, 54 + 80 * len(df_page))
-
-html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*{{box-sizing:border-box;margin:0;padding:0}}
-html{{scrollbar-width:thin;scrollbar-color:{ACCENT}60 transparent}}
-::-webkit-scrollbar{{width:6px;height:6px}}
-::-webkit-scrollbar-track{{background:transparent}}
-::-webkit-scrollbar-thumb{{background:{ACCENT}60;border-radius:4px}}
-::-webkit-scrollbar-thumb:hover{{background:{ACCENT}}}
-body{{font-family:'Inter',sans-serif;background:{BODY_BG};color:{T_DE};font-size:15px}}
-table{{width:100%;border-collapse:collapse;table-layout:auto}}
-thead th{{
-  padding:10px 12px;text-align:left;font-size:.72rem;font-weight:600;
-  letter-spacing:.08em;text-transform:uppercase;color:{T_HDR_CLR};
-  position:sticky;top:0;z-index:10;background:{T_HDR_BG};
-  border-bottom:1px solid {T_BD};backdrop-filter:blur(8px)
-}}
-th.cg{{width:54px;text-align:center}}
-tr{{border-bottom:1px solid {T_BD};transition:background .15s}}
-tr:hover{{background:{T_HOVER}!important}}
-td{{padding:10px 12px;vertical-align:top;line-height:1.6;word-break:break-word;white-space:normal}}
-.cg{{text-align:center;vertical-align:middle;width:54px}}
-.ca{{color:{T_DE};font-weight:600;font-size:1rem;min-width:130px}}
-.cb{{color:{T_EX};font-style:italic;font-size:.92rem;min-width:150px}}
-.cc{{color:{T_DE};font-size:.95rem;min-width:110px}}
-.cd{{color:{T_EX};font-style:italic;font-size:.92rem;min-width:130px}}
-.ce{{color:{T_HI};font-family:'Noto Sans Devanagari',sans-serif;font-size:.95rem;min-width:100px}}
-.cf{{color:{T_EX};font-family:'Noto Sans Devanagari',sans-serif;font-style:italic;font-size:.88rem;min-width:130px}}
-.play-btn{{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:38px;height:38px;border:none;border-radius:50%;
-  background:{BTN_BG};color:{BTN_CLR};cursor:pointer;
-  transition:background .18s,transform .12s;outline:none
-}}
-.play-btn:hover{{background:{BTN_HOV};transform:scale(1.12)}}
-.play-btn:active{{transform:scale(.96)}}
-.play-btn.playing{{background:{BTN_ACT};color:{BTN_ACT_C};animation:pulse 1.2s infinite}}
-@keyframes pulse{{0%,100%{{box-shadow:0 0 0 0 {BTN_ACT}80}}50%{{box-shadow:0 0 0 7px {BTN_ACT}00}}}}
-.no-aud{{color:{T_EX};font-size:1.1rem}}
-audio{{display:none}}
-</style></head><body>
-<table>
-<thead><tr>
-  <th class="cg">▶</th>
-  <th>🇩🇪 Word / Verb</th><th>Example (German)</th>
-  <th>🇬🇧 English</th><th>Example (English)</th>
-  <th>🇮🇳 Hindi</th><th>Example (Hindi)</th>
-</tr></thead>
-<tbody>{"".join(rows_html)}</tbody>
-</table>
-<script>
-var cB=null,cA=null;
-function playRow(id){{
-  var btn=event.currentTarget,aud=document.getElementById('a'+id);
-  if(!aud)return;
-  if(cA===aud){{aud.paused?(aud.play(),btn.classList.add('playing')):(aud.pause(),btn.classList.remove('playing'));return}}
-  if(cA){{cA.pause();cA.currentTime=0}}
-  if(cB)cB.classList.remove('playing');
-  cA=aud;cB=btn;btn.classList.add('playing');
-  aud.play().catch(e=>console.warn(e));
-  aud.onended=()=>{{btn.classList.remove('playing');cA=null;cB=null}}
-}}
-</script></body></html>"""
-
-components.html(html, height=table_h, scrolling=True)
+if audio_assets["sentence_tracks"]:
+    st.divider()
+    st.subheader("Sentence tracks")
+    st.caption("These are full part recordings, so they are played separately from individual word rows.")
+    track = st.selectbox(
+        "Track", audio_assets["sentence_tracks"],
+        format_func=lambda path: os.path.basename(path),
+        key=f"sentence_track_{workbook_key}",
+    )
+    st.audio(track)
 
 # ── Footer pagination ─────────────────────────────────────────────────────────
 if total_pages > 1:
@@ -455,8 +534,9 @@ if st.session_state.quiz_mode:
     st.divider()
     
     # Get current word
-    if st.session_state.quiz_idx < len(df_view):
-        oi = orig_indices[st.session_state.quiz_idx]
+    quiz_indices = orig_indices
+    if st.session_state.quiz_idx < len(quiz_indices):
+        oi = quiz_indices[st.session_state.quiz_idx]
         row = df.loc[oi]
         current_word = str(row.get(col_de, "")).strip()
         correct_answer = str(row.get(col_en, "")).strip()
@@ -465,11 +545,11 @@ if st.session_state.quiz_mode:
         st.markdown(f"<div class='quiz-container' style='background:{CARD};border:1px solid {CARD_BD};border-radius:14px;padding:16px'>", unsafe_allow_html=True)
         
         # Progress bar
-        progress = (st.session_state.quiz_idx + 1) / len(df_view)
+        progress = (st.session_state.quiz_idx + 1) / len(quiz_indices)
         st.markdown(f"<div class='quiz-progress'><div class='quiz-progress-bar' style='width:{progress*100}%'></div></div>", unsafe_allow_html=True)
         
         # Question
-        st.markdown(f"<div style='text-align:center;margin:12px 0'><p style='color:{TEXT2};font-size:.85rem;margin:0'>Word {st.session_state.quiz_idx + 1} of {len(df_view)}</p><h2 style='color:{TEXT};margin:8px 0;font-size:1.8rem'>{current_word}</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align:center;margin:12px 0'><p style='color:{TEXT2};font-size:.85rem;margin:0'>Word {st.session_state.quiz_idx + 1} of {len(quiz_indices)} on this page</p><h2 style='color:{TEXT};margin:8px 0;font-size:1.8rem'>{current_word}</h2></div>", unsafe_allow_html=True)
         
         # Voice options (3 buttons in ONE TRUE HORIZONTAL LINE)
         if oi in page_b64:
@@ -490,13 +570,13 @@ if st.session_state.quiz_mode:
         
         # Answer options (4 options in 2x2 grid)
         # Generate 3 random wrong answers + 1 correct
-        import random
         all_english = df[col_en].dropna().unique().tolist()
         wrong_answers = [a for a in all_english if a != correct_answer]
-        random.shuffle(wrong_answers)
+        rng = random.Random(f"{workbook_key}:{oi}")
+        rng.shuffle(wrong_answers)
         wrong_answers = wrong_answers[:3]
         answer_options = [correct_answer] + wrong_answers
-        random.shuffle(answer_options)
+        rng.shuffle(answer_options)
         
         st.markdown(f"<div class='answer-grid'>", unsafe_allow_html=True)
         
@@ -537,7 +617,7 @@ if st.session_state.quiz_mode:
     
     else:
         # Quiz complete
-        st.markdown(f"<div style='text-align:center;padding:40px 20px'><h2 style='color:{ACCENT};margin:20px 0'>🎉 Quiz Complete!</h2><h3 style='color:{TEXT};margin:12px 0'>Score: {st.session_state.quiz_score}/{len(df_view)}</h3></div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align:center;padding:40px 20px'><h2 style='color:{ACCENT};margin:20px 0'>🎉 Page Test Complete!</h2><h3 style='color:{TEXT};margin:12px 0'>Score: {st.session_state.quiz_score}/{len(orig_indices)}</h3></div>", unsafe_allow_html=True)
         if st.button("🔄 Restart Quiz", use_container_width=True):
             st.session_state.quiz_idx = 0
             st.session_state.quiz_score = 0
@@ -552,7 +632,7 @@ if st.session_state.quiz_mode:
 st.divider()
 quiz_col, _ = st.columns([1, 4])
 with quiz_col:
-    if st.button("📝 Start Quiz Mode", use_container_width=True, help="Practice with interactive quiz"):
+    if st.button("📝 Test this page", use_container_width=True, help="Practice the words on this page"):
         st.session_state.quiz_mode = True
         st.session_state.quiz_idx = 0
         st.session_state.quiz_score = 0
