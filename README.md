@@ -12,9 +12,13 @@ To start manually, run `npm install` once and then `npm run dev`. To create and 
 
 The app discovers `.xlsx` workbooks recursively under `A1/`, `A2/`, `B1/`, and `B2/`. It reads the first worksheet and detects German, English, Hindi, and example-sentence columns by their headers. Keep the existing level, workbook, and audio folders in place.
 
+Guests can preview only the first vocabulary row in each workbook. The workbook API enforces this limit and does not send other rows or full sentence tracks until a valid Supabase session is present. Selecting the locked-words row or searching beyond the preview opens the Google sign-in prompt. After sign-in, the workbook reloads with its full contents.
+
+When a saved recording is unavailable in a deployment, the preview speaker requests German text-to-speech audio and falls back to the browser's speech engine if that service is unavailable. The generated speech endpoint accepts short text only. This external fallback may be rate-limited; host the original recordings on a media service for dependable playback at scale.
+
 Numbered audio files are matched to workbook row numbers, for example `single/1_guten Tag.mp3` or `both/1_guten Tag.mp3`. The row audio selector can play the word clip, the combined clip, or both in sequence. Audio files under a `Sentences/` folder are shown as separate full-track players.
 
-Guest saved words stay in this browser. Once signed in, saved words are synced to the Supabase `public.saved_words` table under the Google account, keyed by workbook path and row number. The text builder exports selected workbook fields as a `.txt` file.
+The Saved section filters by level and one workbook at a time; it opens on the workbook currently selected in Study. Guest saves remain in this browser and migrate to the signed-in Supabase account. Account saves are synced to the Supabase `public.saved_words` table, keyed by workbook path and row number. The text builder exports selected workbook fields as a `.txt` file.
 
 ## Supabase Google sign-in and saved words
 
@@ -60,6 +64,7 @@ Do not add a Google client secret or Supabase service-role key to `.env.local`, 
 |---|---|
 | `npm run dev` | Start the React app and local workbook API |
 | `npm run build` | Type-check and create the production bundle in `dist/` |
+| `npm test` | Run search, access-control, saved-workbook, and account-menu tests |
 | `npm start` | Serve the production build |
 
 The app is implemented with React, Vite, TypeScript, and a small Express API. No Python runtime is required.

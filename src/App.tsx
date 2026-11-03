@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDownToLine, ArrowLeft, ArrowRight, BookOpen, Bookmark, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Headphones, Heart, LogIn, LogOut, Moon, Pause, Search, Sparkles, Sun, Volume2, X } from 'lucide-react'
+import { ArrowDownToLine, ArrowLeft, ArrowRight, BookOpen, Bookmark, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Headphones, Heart, LockKeyhole, LogIn, LogOut, Moon, Pause, Search, Sparkles, Sun, UserRound, Volume2, X } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
+import { filterRowsByQuery, rowsAvailableToUser, savedWordsForWorkbook } from './lib/vocabularyAccess'
 
 type WorkbookSummary = { id: string; level: string; chapter: string; name: string }
 type WordRow = { id: number; values: Record<string, string>; audio: { word: string | null; both: string | null } }
 type WorkbookData = WorkbookSummary & {
   columns: string[]
+  totalRows: number
   fields: Record<'german' | 'english' | 'hindi' | 'germanSentence' | 'englishSentence' | 'hindiSentence', string>
   rows: WordRow[]
   sentenceTracks: string[]
@@ -46,6 +48,7 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false)
   const [authBusy, setAuthBusy] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const [signupPrompt, setSignupPrompt] = useState(false)
   const [expanded, setExpanded] = useState<number | null>(null)
   const [darkMode, setDarkMode] = useState(true)
   const [loading, setLoading] = useState(true)
@@ -192,7 +195,14 @@ export default function App() {
     if (!workbookId) return
     let active = true
     setWorkbook(null)
-    fetch(`/api/workbook?id=${encodeURIComponent(workbookId)}`)
+    async function loadWorkbook() {
+      const { data } = supabase ? await supabase.auth.getSession() : { data: { session: null } }
+      const token = data.session?.access_token
+      return fetch(`/api/workbook?id=${encodeURIComponent(workbookId)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+    }
+    loadWorkbook()
       .then(async (response) => {
         const contentType = response.headers.get('content-type') ?? ''
         if (!contentType.includes('application/json')) throw new Error('The deployment returned a page instead of workbook data. Check the Vercel API routes and redeploy the latest commit.')
@@ -207,21 +217,21 @@ export default function App() {
       })
       .catch((cause: unknown) => { if (active) setError(cause instanceof Error ? cause.message : 'This workbook could not be loaded.') })
     return () => { active = false }
-  }, [workbookId])
+  }, [workbookId, user])
 
   const activeBook = library.find((book) => book.id === workbookId)
   const filteredRows = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase()
-    if (!query || !workbook) return workbook?.rows ?? []
-    return workbook.rows.filter((row) => Object.values(row.values).some((value) => value.toLocaleLowerCase().includes(query)))
+    return filterRowsByQuery(workbook?.rows ?? [], search)
   }, [search, workbook])
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE))
+  const accessibleRows = rowsAvailableToUser(filteredRows, Boolean(user))
+  const totalPages = Math.max(1, Math.ceil(accessibleRows.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
-  const visibleRows = filteredRows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+  const visibleRows = accessibleRows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
   const audioCount = workbook?.rows.filter((row) => row.audio.word || row.audio.both).length ?? 0
   const audioCoverage = workbook?.rows.length ? Math.round(audioCount / workbook.rows.length * 100) : 0
   const currentQuizRow = visibleRows[quizIndex]
   const savedEntries = Object.entries(savedWords)
+  const currentLevel = activeBook?.level ?? library[0]?.level ?? 'A1'
 
   async function playSequence(paths: string[], key: string, rate = 1) {
     if (playingKey === key) {
@@ -231,7 +241,6 @@ export default function App() {
       return
     }
     const token = ++playbackToken.current
-    audioRef.current?.pause()
     setPlayingKey(key)
     try {
       for (const file of paths) {
@@ -251,16 +260,60 @@ export default function App() {
     }
   }
 
-  function speakGerman(text: string) {
-    if (!('speechSynthesis' in window)) {
-      setError('This browser does not support German speech playback.')
+  async function speakGerman(text: string, key = `speech:${text}`) {
+    if (playingKey === key) {
+      playbackToken.current += 1
+      audioRef.current?.pause()
+      window.speechSynthesis?.cancel()
+      setPlayingKey('')
       return
     }
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'de-DE'
-    utterance.rate = 0.86
-    window.speechSynthesis.speak(utterance)
+    const token = ++playbackToken.current
+    audioRef.current?.pause()
+    setPlayingKey(key)
+    let remoteAudioPlayed = false
+    try {
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      if (!response.ok || !response.headers.get('content-type')?.includes('audio')) throw new Error('Remote speech unavailable')
+      if (token !== playbackToken.current) return
+      const objectUrl = URL.createObjectURL(await response.blob())
+      const audio = new Audio(objectUrl)
+      audioRef.current = audio
+      remoteAudioPlayed = await new Promise<boolean>((resolve) => {
+        audio.onended = () => resolve(true)
+        audio.onerror = () => resolve(false)
+        audio.onpause = () => resolve(false)
+        audio.play().catch(() => resolve(false))
+      })
+      URL.revokeObjectURL(objectUrl)
+    } catch {
+      remoteAudioPlayed = false
+    }
+
+    if (!remoteAudioPlayed && token === playbackToken.current) {
+      if (!('speechSynthesis' in window)) {
+        setError('German speech is unavailable in this browser right now.')
+      } else {
+        window.speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(text)
+        utterance.lang = 'de-DE'
+        utterance.rate = 0.86
+        const germanVoice = window.speechSynthesis.getVoices().find((voice) => voice.lang.toLowerCase().startsWith('de'))
+        if (germanVoice) utterance.voice = germanVoice
+        const spoken = await new Promise<boolean>((resolve) => {
+          const timeout = window.setTimeout(() => resolve(false), 10000)
+          utterance.onend = () => { window.clearTimeout(timeout); resolve(true) }
+          utterance.onerror = () => { window.clearTimeout(timeout); resolve(false) }
+          window.speechSynthesis.speak(utterance)
+        })
+        if (!spoken && token === playbackToken.current) setError('Could not play German pronunciation. Check that audio is enabled in your browser and try again.')
+      }
+    }
+    if (token === playbackToken.current) setPlayingKey('')
   }
 
   async function toggleSaved(row: WordRow, book: WorkbookSummary) {
@@ -393,7 +446,7 @@ export default function App() {
         </nav>
         <div className="topbar-actions">
           {user ? <div className="account-menu-wrap" ref={accountMenuRef}>
-            <button className="account-button" disabled={authBusy || !authReady} title="Account options" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen((open) => !open)}><span className="account-email">{user.email ?? 'Account'}</span><ChevronDown size={14} /></button>
+            <button className="account-button account-icon-button" disabled={authBusy || !authReady} title={`Signed in as ${user.email ?? 'Google user'}`} aria-label={`Account: ${user.email ?? 'signed in'}`} aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen((open) => !open)}><UserRound data-testid="account-person-icon" size={18} /><span className="account-status-dot" aria-hidden="true" /></button>
             {accountMenuOpen && <div className="account-menu" role="menu">
               <span className="account-menu-label">Signed in as</span>
               <strong className="account-menu-email">{user.email ?? 'Google account'}</strong>
@@ -413,34 +466,35 @@ export default function App() {
         <section className="library-bar" aria-label="Vocabulary selection">
           <div className="select-field level-select"><label htmlFor="level-picker">Level</label><div className="select-wrap"><span className={`level-dot ${levelColors[activeBook?.level ?? 'A1']}`} /><select id="level-picker" value={activeBook?.level ?? ''} onChange={(event) => changeWorkbook(library.find((book) => book.level === event.target.value)?.id ?? '')}>{[...new Set(library.map((book) => book.level))].map((level) => <option key={level}>{level}</option>)}</select><ChevronDown size={16} /></div></div>
           <div className="select-field chapter-select"><label htmlFor="chapter-picker">Workbook</label><div className="select-wrap"><select id="chapter-picker" value={workbookId} onChange={(event) => changeWorkbook(event.target.value)}>{levelBooks.map((book) => <option key={book.id} value={book.id}>{book.chapter}</option>)}</select><ChevronDown size={16} /></div></div>
-          <label className="search-field"><Search size={17} /><input ref={searchInputRef} value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} placeholder="Search words, meanings, examples…" /><kbd>Ctrl K</kbd></label>
+          <label className="search-field"><Search size={17} /><input ref={searchInputRef} value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} placeholder="Search words, meanings, examples…" />{search && <button className="clear-search" type="button" title="Clear search" aria-label="Clear search" onClick={() => { setSearch(''); setPage(1) }}><X size={14} /></button>}<kbd>Ctrl K</kbd></label>
         </section>
 
         {error && <div className="inline-error" role="status">{error}<button onClick={() => setError('')} aria-label="Dismiss"><X size={15} /></button></div>}
 
         <section className="metric-strip" aria-label="Workbook overview">
-          <div className="metric-cell"><span>WORDS IN WORKBOOK</span><strong>{workbook?.rows.length.toLocaleString() ?? '—'}</strong></div>
+          <div className="metric-cell"><span>{user ? 'WORDS IN WORKBOOK' : 'WORDS AVAILABLE'}</span><strong>{workbook ? (user ? workbook.totalRows.toLocaleString() : '1') : '—'}</strong></div>
           <div className="metric-cell"><span>AUDIO COVERAGE</span><strong>{audioCoverage}<small>%</small></strong></div>
           <div className="metric-cell"><span>SAVED FOR LATER</span><strong>{savedEntries.length.toLocaleString()}</strong></div>
           <div className="metric-progress"><div><span>Listen as you learn</span><strong>{audioCount.toLocaleString()} clips matched</strong></div><i><b style={{ width: `${audioCoverage}%` }} /></i></div>
         </section>
 
-        {section === 'study' && workbook && activeBook && <StudyView workbook={workbook} activeBook={activeBook} rows={visibleRows} totalRows={filteredRows.length} savedWords={savedWords} page={safePage} totalPages={totalPages} pageStart={pageStart} audioMode={audioMode} setAudioMode={setAudioMode} setPage={setPage} toggleSaved={toggleSaved} playingKey={playingKey} playSequence={playSequence} speakGerman={speakGerman} expanded={expanded} setExpanded={setExpanded} />}
-        {section === 'saved' && <SavedView entries={savedEntries} onRemove={(key) => void removeSaved(key)} playSequence={playSequence} speakGerman={speakGerman} playingKey={playingKey} />}
+        {section === 'study' && workbook && activeBook && <StudyView workbook={workbook} activeBook={activeBook} rows={visibleRows} totalRows={accessibleRows.length} lockedRows={user ? 0 : Math.max(0, workbook.totalRows - 1)} search={search} savedWords={savedWords} page={safePage} totalPages={totalPages} pageStart={pageStart} audioMode={audioMode} setAudioMode={setAudioMode} setPage={setPage} toggleSaved={toggleSaved} playingKey={playingKey} playSequence={playSequence} speakGerman={speakGerman} requestAccess={() => setSignupPrompt(true)} expanded={expanded} setExpanded={setExpanded} />}
+        {section === 'saved' && <SavedView entries={savedEntries} library={library} activeLevel={currentLevel} activeWorkbookId={workbookId} onRemove={(key) => void removeSaved(key)} playSequence={playSequence} speakGerman={speakGerman} playingKey={playingKey} />}
         {section === 'builder' && workbook && <BuilderView workbook={workbook} rows={visibleRows} pageStart={pageStart} selectedRows={selectedTextRows} setSelectedRows={setSelectedTextRows} selectedFields={selectedFields} setSelectedFields={setSelectedFields} fieldSeparator={fieldSeparator} setFieldSeparator={setFieldSeparator} rowSeparator={rowSeparator} setRowSeparator={setRowSeparator} textOutput={textOutput} setTextOutput={setTextOutput} buildText={buildText} downloadText={downloadText} />}
         {section === 'quiz' && workbook && <QuizView rows={visibleRows} workbook={workbook} index={quizIndex} score={quizScore} answers={quizAnswers} options={quizOptions} isDone={isQuizDone} answer={answerQuiz} next={nextQuiz} back={() => setSection('study')} playSequence={playSequence} playingKey={playingKey} />}
         <footer className="app-footer"><span><Headphones size={14} /> Built for steady progress</span><span>DeutschFlash <i /> A1–B2</span></footer>
       </main>
+      {signupPrompt && <SignupPrompt busy={authBusy} onClose={() => setSignupPrompt(false)} onContinue={() => void signInWithGoogle()} />}
     </div>
   )
 }
 
-function StudyView({ workbook, activeBook, rows, totalRows, savedWords, page, totalPages, pageStart, audioMode, setAudioMode, setPage, toggleSaved, playingKey, playSequence, speakGerman, expanded, setExpanded }: {
-  workbook: WorkbookData; activeBook: WorkbookSummary; rows: WordRow[]; totalRows: number; savedWords: Record<string, SavedWord>; page: number; totalPages: number; pageStart: number; audioMode: string; setAudioMode: (mode: string) => void; setPage: (page: number) => void; toggleSaved: (row: WordRow, book: WorkbookSummary) => void; playingKey: string; playSequence: (paths: string[], key: string, rate?: number) => void; speakGerman: (text: string) => void; expanded: number | null; setExpanded: (id: number | null) => void
+function StudyView({ workbook, activeBook, rows, totalRows, lockedRows, search, savedWords, page, totalPages, pageStart, audioMode, setAudioMode, setPage, toggleSaved, playingKey, playSequence, speakGerman, requestAccess, expanded, setExpanded }: {
+  workbook: WorkbookData; activeBook: WorkbookSummary; rows: WordRow[]; totalRows: number; lockedRows: number; search: string; savedWords: Record<string, SavedWord>; page: number; totalPages: number; pageStart: number; audioMode: string; setAudioMode: (mode: string) => void; setPage: (page: number) => void; toggleSaved: (row: WordRow, book: WorkbookSummary) => void; playingKey: string; playSequence: (paths: string[], key: string, rate?: number) => void; speakGerman: (text: string, key?: string) => void; requestAccess: () => void; expanded: number | null; setExpanded: (id: number | null) => void
 }) {
   return <section className="study-area">
     <div className="section-heading"><div><div className="eyebrow">{activeBook.level} · {activeBook.chapter}</div><h2>Vocabulary</h2></div><div className="list-tools"><label className="audio-mode">Row audio<select value={audioMode} onChange={(event) => setAudioMode(event.target.value)}><option>Word → Both</option><option>Word only</option><option>Both only</option></select><ChevronDown size={14} /></label><span className="result-total">{totalRows.toLocaleString()} words</span></div></div>
-    {!rows.length ? <div className="empty-state"><Search size={22} /><strong>No matching words</strong><span>Try a shorter search or another workbook.</span></div> : <div className="word-list">{rows.map((row, index) => {
+    {!rows.length ? <div className="empty-state"><Search size={22} /><strong>{lockedRows > 0 && search ? 'Search the full workbook' : 'No matching words'}</strong><span>{lockedRows > 0 && search ? 'Guests can search the first preview word. Sign in with Google to search the rest of this workbook.' : 'Try a different spelling or another workbook.'}</span>{lockedRows > 0 && search && <button className="primary-button" onClick={requestAccess}><LogIn size={15} /> Sign in with Google</button>}</div> : <div className="word-list">{rows.map((row, index) => {
       const german = clean(row.values[workbook.fields.german]) || 'Untitled word'
       const english = clean(row.values[workbook.fields.english])
       const key = `${activeBook.id}::${row.id}`
@@ -449,19 +503,56 @@ function StudyView({ workbook, activeBook, rows, totalRows, savedWords, page, to
       const paths = rowAudio.filter((file): file is string => Boolean(file))
       return <article className={`word-row${expanded === row.id ? ' expanded' : ''}`} key={key}>
         <div className="row-index">{String(pageStart + index + 1).padStart(2, '0')}</div>
-        <div className="row-language"><div className="german-word">{german}<button className="audio-button" aria-label={`Play ${german}`} title={paths.length ? 'Play recorded pronunciation' : 'Speak with browser voice'} onClick={() => paths.length ? playSequence(paths, key) : speakGerman(german)}>{playingKey === key ? <Pause size={15} /> : <Volume2 size={16} />}</button></div><span className="row-subtext">{clean(row.values[workbook.fields.germanSentence]) || 'German vocabulary'}</span></div>
+        <div className="row-language"><div className="german-word">{german}<button className="audio-button" aria-label={`Play ${german}`} title={paths.length ? 'Play recorded pronunciation' : 'Play German pronunciation'} onClick={() => paths.length ? playSequence(paths, key) : void speakGerman(german, key)}>{playingKey === key ? <Pause size={15} /> : <Volume2 size={16} />}</button></div><span className="row-subtext">{clean(row.values[workbook.fields.germanSentence]) || 'German vocabulary'}</span></div>
         <div className="row-meaning"><span>{english || '—'}</span><small>{clean(row.values[workbook.fields.hindi])}</small></div>
         <div className="row-actions"><button className={`bookmark-button${isSaved ? ' saved' : ''}`} title={isSaved ? 'Remove saved word' : 'Save word'} aria-label={isSaved ? `Remove ${german} from saved words` : `Save ${german}`} onClick={() => toggleSaved(row, activeBook)}>{isSaved ? <Heart size={16} fill="currentColor" /> : <Bookmark size={16} />}</button><button className="expand-button" title="Show example translations" aria-label={`Show details for ${german}`} aria-expanded={expanded === row.id} onClick={() => setExpanded(expanded === row.id ? null : row.id)}>{expanded === row.id ? <X size={15} /> : <ChevronDown size={16} />}</button></div>
         {expanded === row.id && <div className="row-details">{[[workbook.fields.germanSentence, 'German example'], [workbook.fields.englishSentence, 'English translation'], [workbook.fields.hindiSentence, 'Hindi translation']].filter(([field]) => field).map(([field, label]) => <div key={field}><small>{label}</small><p>{clean(row.values[field]) || 'No example available.'}</p></div>)}</div>}
       </article>
-    })}</div>}
+    })}{lockedRows > 0 && <button className="locked-words-row" onClick={requestAccess}><span className="locked-icon"><LockKeyhole size={17} /></span><span className="locked-copy"><strong>More words in this workbook</strong><small>Sign in with Google to unlock study, search, audio, and quizzes.</small></span><span className="locked-action">Unlock <ArrowRight size={14} /></span></button>}</div>}
     <div className="pagination"><span>Showing <b>{totalRows ? pageStart + 1 : 0}–{Math.min(pageStart + rows.length, totalRows)}</b> of {totalRows.toLocaleString()}</span><div><button title="Previous page" aria-label="Previous page" disabled={page <= 1} onClick={() => setPage(page - 1)}><ChevronLeft size={17} /></button><span>Page <b>{page}</b> of {totalPages}</span><button title="Next page" aria-label="Next page" disabled={page >= totalPages} onClick={() => setPage(page + 1)}><ChevronRight size={17} /></button></div></div>
     {workbook.sentenceTracks.length > 0 && <section className="sentence-tracks"><div><div className="eyebrow">Full recordings</div><h3>Sentence tracks</h3></div>{workbook.sentenceTracks.map((track) => <audio controls preload="none" key={track} src={audioUrl(track)} aria-label={track.split('/').pop()} />)}</section>}
   </section>
 }
 
-function SavedView({ entries, onRemove, playSequence, speakGerman, playingKey }: { entries: [string, SavedWord][]; onRemove: (key: string) => void; playSequence: (paths: string[], key: string, rate?: number) => void; speakGerman: (text: string) => void; playingKey: string }) {
-  return <section className="content-panel saved-panel"><div className="section-heading"><div><div className="eyebrow">Your personal collection</div><h2>Saved words</h2></div><span className="result-total">{entries.length} saved</span></div>{entries.length ? <div className="word-list">{entries.map(([key, item]) => { const german = item.values['Verb'] || item.values['Vocab Word'] || Object.entries(item.values).find(([column]) => /word|verb|german/i.test(column))?.[1] || 'Saved word'; const english = Object.entries(item.values).find(([column]) => /english/i.test(column))?.[1] || ''; const audioPaths = [item.audio?.word, item.audio?.both].filter((file): file is string => Boolean(file)); return <article className="word-row" key={key}><div className="row-index"><Bookmark size={15} /></div><div className="row-language"><div className="german-word">{german}<button className="audio-button" aria-label={`Play ${german}`} title={audioPaths.length ? 'Play recorded pronunciation' : 'Speak with browser voice'} onClick={() => audioPaths.length ? playSequence(audioPaths, key) : speakGerman(german)}>{playingKey === key ? <Pause size={15} /> : <Volume2 size={16} />}</button></div><span className="row-subtext">{item.level} · {item.chapter}</span></div><div className="row-meaning"><span>{english || '—'}</span></div><div className="row-actions"><button className="bookmark-button saved" title="Remove saved word" aria-label={`Remove ${german}`} onClick={() => onRemove(key)}><Heart size={16} fill="currentColor" /></button></div></article>})}</div> : <div className="empty-state"><Bookmark size={22} /><strong>Your collection starts here</strong><span>Save words while studying and they’ll be ready to review here.</span></div>}</section>
+function SavedView({ entries, library, activeLevel, activeWorkbookId, onRemove, playSequence, speakGerman, playingKey }: { entries: [string, SavedWord][]; library: WorkbookSummary[]; activeLevel: string; activeWorkbookId: string; onRemove: (key: string) => void; playSequence: (paths: string[], key: string, rate?: number) => void; speakGerman: (text: string, key?: string) => void; playingKey: string }) {
+  const [levelFilter, setLevelFilter] = useState(activeLevel)
+  const initialBook = library.find((book) => book.id === activeWorkbookId && book.level === activeLevel) ?? library.find((book) => book.level === activeLevel)
+  const [workbookFilter, setWorkbookFilter] = useState(initialBook?.id ?? '')
+  const levelBooks = library.filter((book) => book.level === levelFilter)
+  const selectedWorkbook = levelBooks.find((book) => book.id === workbookFilter) ?? levelBooks[0]
+  const workbookEntries = selectedWorkbook ? savedWordsForWorkbook(entries, levelFilter, selectedWorkbook.id) : []
+
+  function changeLevel(level: string) {
+    setLevelFilter(level)
+    setWorkbookFilter(library.find((book) => book.level === level)?.id ?? '')
+  }
+
+  return <section className="saved-view">
+    <div className="saved-filters">
+      <label className="saved-filter"><span>Level</span><span className="saved-select-wrap"><select value={levelFilter} onChange={(event) => changeLevel(event.target.value)}>{[...new Set(library.map((book) => book.level))].map((level) => <option key={level}>{level}</option>)}</select><ChevronDown size={14} /></span></label>
+      <label className="saved-filter workbook-filter"><span>Workbook</span><span className="saved-select-wrap"><select value={selectedWorkbook?.id ?? ''} onChange={(event) => setWorkbookFilter(event.target.value)}>{levelBooks.map((book) => <option key={book.id} value={book.id}>{book.chapter}</option>)}</select><ChevronDown size={14} /></span></label>
+      <span className="saved-filter-count">{workbookEntries.length} saved in this workbook</span>
+    </div>
+    <SavedWordList entries={workbookEntries} onRemove={onRemove} playSequence={playSequence} speakGerman={speakGerman} playingKey={playingKey} />
+  </section>
+}
+
+function SavedWordList({ entries, onRemove, playSequence, speakGerman, playingKey }: { entries: [string, SavedWord][]; onRemove: (key: string) => void; playSequence: (paths: string[], key: string, rate?: number) => void; speakGerman: (text: string, key?: string) => void; playingKey: string }) {
+  return <section className="content-panel saved-panel"><div className="section-heading"><div><div className="eyebrow">Your personal collection</div><h2>Saved words</h2></div><span className="result-total">{entries.length} saved</span></div>{entries.length ? <div className="word-list">{entries.map(([key, item]) => { const german = item.values['Verb'] || item.values['Vocab Word'] || Object.entries(item.values).find(([column]) => /word|verb|german/i.test(column))?.[1] || 'Saved word'; const english = Object.entries(item.values).find(([column]) => /english/i.test(column))?.[1] || ''; const audioPaths = [item.audio?.word, item.audio?.both].filter((file): file is string => Boolean(file)); return <article className="word-row" key={key}><div className="row-index"><Bookmark size={15} /></div><div className="row-language"><div className="german-word">{german}<button className="audio-button" aria-label={`Play ${german}`} title={audioPaths.length ? 'Play recorded pronunciation' : 'Play German pronunciation'} onClick={() => audioPaths.length ? playSequence(audioPaths, key) : void speakGerman(german, key)}>{playingKey === key ? <Pause size={15} /> : <Volume2 size={16} />}</button></div><span className="row-subtext">{item.level} · {item.chapter}</span></div><div className="row-meaning"><span>{english || '—'}</span></div><div className="row-actions"><button className="bookmark-button saved" title="Remove saved word" aria-label={`Remove ${german}`} onClick={() => onRemove(key)}><Heart size={16} fill="currentColor" /></button></div></article>})}</div> : <div className="empty-state"><Bookmark size={22} /><strong>Your collection starts here</strong><span>Save words while studying and they’ll be ready to review here.</span></div>}</section>
+}
+
+function SignupPrompt({ busy, onClose, onContinue }: { busy: boolean; onClose: () => void; onContinue: () => void }) {
+  return <div className="signup-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
+    <section className="signup-dialog" role="dialog" aria-modal="true" aria-labelledby="signup-title" aria-describedby="signup-description">
+      <button className="signup-close" aria-label="Close sign-in dialog" onClick={onClose}><X size={18} /></button>
+      <span className="signup-icon"><LockKeyhole size={21} /></span>
+      <div className="eyebrow">Full library access</div>
+      <h2 id="signup-title">Keep learning beyond the preview.</h2>
+      <p id="signup-description">Guests can preview the first word in each workbook. Sign in with Google to unlock every word, full search, saved lists, and quizzes.</p>
+      <button className="google-signin-button" disabled={busy} onClick={onContinue}><LogIn size={17} />{busy ? 'Connecting to Google…' : 'Sign up or sign in with Google'}</button>
+      <button className="signup-cancel" onClick={onClose}>Maybe later</button>
+    </section>
+  </div>
 }
 
 function BuilderView({ workbook, rows, pageStart, selectedRows, setSelectedRows, selectedFields, setSelectedFields, fieldSeparator, setFieldSeparator, rowSeparator, setRowSeparator, textOutput, setTextOutput, buildText, downloadText }: {

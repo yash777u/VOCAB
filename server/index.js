@@ -2,9 +2,12 @@ import express from 'express'
 import fs from 'node:fs'
 import { createServer as createHttpServer } from 'node:http'
 import path from 'node:path'
-import { findWorkbooks, workbookData } from './library.js'
+import dotenv from 'dotenv'
+import { findWorkbooks, hasValidSupabaseSession, workbookData } from './library.js'
+import { generateGermanSpeech, validateSpeechText } from './tts.js'
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
+dotenv.config({ path: path.join(root, '.env.local') })
 const savedWordsFile = path.join(root, 'saved_words.json')
 const audioExtensions = new Set(['.mp3', '.wav', '.ogg', '.m4a', '.mpga'])
 const levels = ['A1', 'A2', 'B1', 'B2']
@@ -13,11 +16,25 @@ app.use(express.json({ limit: '2mb' }))
 
 app.get('/api/library', (_request, response) => response.json(findWorkbooks()))
 
+app.post('/api/tts', async (request, response) => {
+  const text = validateSpeechText(request.body?.text)
+  if (!text) return response.status(400).json({ error: 'Provide text between 1 and 180 characters.' })
+  try {
+    const audio = await generateGermanSpeech(text)
+    response.setHeader('Cache-Control', 'no-store')
+    response.type('audio/mpeg').send(audio)
+  } catch (error) {
+    console.error('German speech generation failed:', error)
+    response.status(502).json({ error: 'Speech generation is temporarily unavailable.' })
+  }
+})
+
 app.get('/api/workbook', async (request, response) => {
   const workbook = findWorkbooks().find((item) => item.id === request.query.id)
   if (!workbook) return response.status(404).json({ error: 'Workbook not found.' })
   try {
-    response.json(await workbookData(workbook, { includeAudio: true }))
+    const authenticated = await hasValidSupabaseSession(request)
+    response.json(await workbookData(workbook, { includeAudio: true, includeSentenceTracks: authenticated, maxRows: authenticated ? undefined : 1 }))
   } catch (error) {
     console.error(`Could not read ${workbook.id}:`, error)
     response.status(500).json({ error: 'This workbook could not be read.' })

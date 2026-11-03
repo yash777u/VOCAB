@@ -26,6 +26,23 @@ export function findWorkbooks() {
   return found.sort((left, right) => left.level.localeCompare(right.level) || left.chapter.localeCompare(right.chapter))
 }
 
+export async function hasValidSupabaseSession(request) {
+  const authorization = request.headers?.authorization ?? request.headers?.Authorization ?? ''
+  const token = authorization.match(/^Bearer\s+(.+)$/i)?.[1]
+  const supabaseUrl = process.env.VITE_SUPABASE_URL
+  const publishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY
+  if (!token || !supabaseUrl || !publishableKey) return false
+
+  try {
+    const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: { apikey: publishableKey, Authorization: `Bearer ${token}` },
+    })
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
 function discoverAudio(directory) {
   const audioExtensions = new Set(['.mp3', '.wav', '.ogg', '.m4a', '.mpga'])
   const audio = { word: {}, both: {}, sentenceTracks: [] }
@@ -54,11 +71,13 @@ function discoverAudio(directory) {
   return audio
 }
 
-export async function workbookData(workbook, { includeAudio = false } = {}) {
+export async function workbookData(workbook, { includeAudio = false, includeSentenceTracks = true, maxRows } = {}) {
   const sheetRows = await readSheet(path.join(ROOT, workbook.id))
   const headers = (sheetRows[0] ?? []).map((value, index) => String(value ?? '').trim() || `Unnamed: ${index + 1}`)
-  const rows = sheetRows.slice(1).map((cells) => Object.fromEntries(headers.map((header, index) => [header, String(cells[index] ?? '').trim()])))
+  const allRows = sheetRows.slice(1).map((cells) => Object.fromEntries(headers.map((header, index) => [header, String(cells[index] ?? '').trim()])))
     .filter((row) => Object.values(row).some(Boolean))
+  const totalRows = allRows.length
+  const rows = maxRows === undefined ? allRows : allRows.slice(0, maxRows)
   const columns = [...new Set(headers)].filter((column) => !column.startsWith('Unnamed'))
   const pickColumn = (terms, fallback = columns[0] ?? '') => columns.find((column) => terms.some((term) => column.toLowerCase().includes(term))) ?? fallback
   const fields = {
@@ -74,11 +93,12 @@ export async function workbookData(workbook, { includeAudio = false } = {}) {
     ...workbook,
     columns,
     fields,
+    totalRows,
     rows: rows.map((values, index) => ({
       id: index,
       values,
       audio: { word: audio.word[index + 1] ?? null, both: audio.both[index + 1] ?? null },
     })),
-    sentenceTracks: audio.sentenceTracks,
+    sentenceTracks: includeSentenceTracks ? audio.sentenceTracks : [],
   }
 }

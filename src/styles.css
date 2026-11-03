@@ -49,6 +49,9 @@ button:disabled { opacity: .42; cursor: not-allowed; transform: none !important;
 .account-menu-wrap { position: relative; }
 .account-button { display: inline-flex; min-height: 38px; max-width: 260px; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 0 11px; background: var(--surface-soft); color: var(--ink); font-size: 10px; font-weight: 800; transition: .18s ease; }
 .account-button:hover:not(:disabled) { border-color: var(--lime); color: var(--lime); }
+.account-icon-button { position: relative; width: 40px; min-width: 40px; padding: 0; color: var(--lime); }
+.account-icon-button > svg { width: 18px; height: 18px; }
+.account-status-dot { position: absolute; right: 6px; bottom: 6px; width: 7px; height: 7px; border: 1px solid var(--surface); border-radius: 50%; background: var(--lime); }
 .account-email { overflow: hidden; max-width: 110px; color: var(--cyan); text-overflow: ellipsis; white-space: nowrap; }
 .account-menu { position: absolute; top: calc(100% + 9px); right: 0; z-index: 40; display: grid; width: min(280px, calc(100vw - 28px)); gap: 6px; border: 1px solid var(--line-strong); border-radius: 12px; padding: 13px; background: #172321; box-shadow: var(--shadow); }
 .account-menu-label { color: var(--muted-soft); font: 9px 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
@@ -81,6 +84,8 @@ button:disabled { opacity: .42; cursor: not-allowed; transform: none !important;
 .search-field:focus-within { border-color: rgba(118,221,203,.55); box-shadow: 0 0 0 3px rgba(118,221,203,.08); }
 .search-field input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 11px; }
 .search-field input::placeholder { color: var(--muted-soft); }
+.clear-search { display: grid; flex: 0 0 auto; width: 25px; height: 25px; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--muted); }
+.clear-search:hover { background: var(--surface-soft); color: var(--ink); }
 .search-field kbd { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 5px; padding: 3px 5px; color: var(--muted-soft); font: 9px 'DM Mono', monospace; }
 .inline-error { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; border: 1px solid rgba(255,149,128,.25); border-radius: 9px; padding: 9px 12px; background: rgba(255,149,128,.08); color: var(--coral); font-size: 11px; }
 .inline-error button { display: grid; width: 25px; height: 25px; place-items: center; border: 0; background: transparent; color: inherit; }
@@ -135,8 +140,35 @@ button:disabled { opacity: .42; cursor: not-allowed; transform: none !important;
 .empty-state > svg { margin-bottom: 4px; color: var(--cyan); }
 .empty-state strong { color: var(--ink); font-size: 13px; }
 .empty-state span { max-width: 300px; font-size: 11px; line-height: 1.6; }
+.locked-words-row { display: grid; width: 100%; grid-template-columns: 35px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 66px; border: 0; border-bottom: 1px solid var(--line); padding: 11px 15px; background: rgba(183,237,118,.035); text-align: left; }
+.locked-words-row:hover { background: var(--lime-soft); }
+.locked-icon { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid rgba(183,237,118,.22); border-radius: 9px; color: var(--lime); }
+.locked-copy { display: grid; gap: 4px; min-width: 0; }
+.locked-copy strong { color: var(--ink); font-size: 10px; }
+.locked-copy small { color: var(--muted); font-size: 9px; }
+.locked-action { display: inline-flex; align-items: center; gap: 6px; color: var(--lime); font-size: 10px; font-weight: 800; }
 .content-panel { margin-top: 3px; }
 .saved-panel, .builder-panel, .quiz-panel { max-width: 930px; margin-right: auto; margin-left: auto; }
+.saved-view { display: grid; gap: 12px; max-width: 930px; margin: 3px auto 0; }
+.saved-filters { display: grid; grid-template-columns: minmax(110px, .42fr) minmax(220px, 1fr) auto; align-items: end; gap: 11px; border: 1px solid var(--line); border-radius: 13px; padding: 12px; background: rgba(20,33,30,.6); }
+.saved-filter { display: grid; min-width: 0; gap: 6px; color: var(--muted-soft); font: 9px 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
+.saved-select-wrap { position: relative; display: flex; height: 38px; align-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 0 9px; background: rgba(5,15,13,.32); }
+.saved-select-wrap select { width: 100%; min-width: 0; height: 100%; appearance: none; border: 0; outline: 0; padding-right: 22px; background: transparent; color: var(--ink); font: 700 10px 'Manrope', sans-serif; text-overflow: ellipsis; }
+.saved-select-wrap select option { background: #182622; color: var(--ink); }
+.saved-select-wrap svg { position: absolute; right: 8px; color: var(--muted); pointer-events: none; }
+.saved-filter-count { padding: 0 2px 11px; color: var(--cyan); font: 10px 'DM Mono', monospace; white-space: nowrap; }
+.signup-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow-y: auto; padding: 20px; background: rgba(3,10,9,.76); backdrop-filter: blur(7px); }
+.signup-dialog { position: relative; display: grid; justify-items: center; width: min(440px, 100%); border: 1px solid var(--line-strong); border-radius: 19px; padding: 30px 28px 22px; background: linear-gradient(145deg, #1d2c28, #111e1b); box-shadow: 0 26px 90px rgba(0,0,0,.5); text-align: center; animation: dialog-in .18s ease-out; }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.signup-close { position: absolute; top: 12px; right: 12px; display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); color: var(--muted); }
+.signup-close:hover { color: var(--ink); }
+.signup-icon { display: grid; width: 46px; height: 46px; place-items: center; margin-bottom: 15px; border: 1px solid rgba(183,237,118,.25); border-radius: 14px; background: var(--lime-soft); color: var(--lime); }
+.signup-dialog h2 { max-width: 350px; margin: 8px 0 9px; color: var(--ink); font-size: 24px; line-height: 1.2; }
+.signup-dialog p { max-width: 350px; margin: 0 0 20px; color: var(--muted); font-size: 11px; line-height: 1.7; }
+.google-signin-button { display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--lime); border-radius: 10px; background: var(--lime); color: var(--lime-ink); font-size: 11px; font-weight: 800; }
+.google-signin-button:hover:not(:disabled) { filter: brightness(1.05); }
+.signup-cancel { margin-top: 12px; border: 0; padding: 8px 12px; background: transparent; color: var(--muted); font-size: 10px; }
+.signup-cancel:hover { color: var(--ink); }
 .panel-intro { margin: -2px 0 20px; color: var(--muted); font-size: 11px; line-height: 1.6; }
 .builder-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .9fr); gap: 14px; }
 .builder-options, .text-output { display: grid; align-content: start; gap: 14px; min-width: 0; }
@@ -213,6 +245,10 @@ input[type="checkbox"] { accent-color: var(--lime); }
 .light-mode .select-wrap select option, .light-mode .audio-mode option, .light-mode .builder-separators option { background: #f7faf4; color: #17261d; }
 .light-mode .row-meaning > span { color: #167f72; }
 .light-mode .account-menu { background: #f7faf4; }
+.light-mode .saved-filters { background: rgba(247,250,244,.82); }
+.light-mode .saved-select-wrap { background: rgba(255,255,255,.72); }
+.light-mode .saved-select-wrap select option { background: #f7faf4; color: #17261d; }
+.light-mode .signup-dialog { background: linear-gradient(145deg, #f8fbf4, #e9f0e5); }
 
 @media (max-width: 760px) {
   .app-shell { padding: 12px 15px 32px; }
@@ -250,6 +286,11 @@ input[type="checkbox"] { accent-color: var(--lime); }
   .select-wrap select { font-size: 10px; }
   .search-field { height: 39px; }
   .search-field kbd { display: none; }
+  .saved-filters { grid-template-columns: minmax(90px, .55fr) minmax(0, 1fr); }
+  .saved-filter-count { grid-column: 1 / -1; padding: 1px 2px 0; }
+  .locked-words-row { grid-template-columns: 30px minmax(0, 1fr); padding: 10px; }
+  .locked-action { grid-column: 2; }
+  .signup-dialog { padding: 27px 19px 18px; }
   .metric-strip { margin: 14px 0 23px; }
   .metric-cell { padding-right: 5px; padding-left: 2px; }
   .metric-cell + .metric-cell { padding-left: 8px; }
