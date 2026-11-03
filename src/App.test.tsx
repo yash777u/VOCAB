@@ -105,6 +105,27 @@ describe('signed-in account menu', () => {
     expect(screen.getByRole('region', { name: 'Workbook overview' })).toBeTruthy()
   })
 
+  it('restores the last tab and workbook after reload', async () => {
+    window.localStorage.setItem('german-vocab-last-location', JSON.stringify({
+      workbookId: book.id,
+      section: 'saved',
+      search: 'sprech',
+      page: 1,
+    }))
+    window.localStorage.setItem('german-vocab-saved-filters', JSON.stringify({ level: 'A1', workbookId: book.id }))
+    const user = userEvent.setup()
+    render(<App />)
+
+    await screen.findByRole('heading', { name: 'Saved words' })
+    expect(screen.getByRole('button', { name: /Saved/ }).classList.contains('active')).toBe(true)
+    expect((screen.getByLabelText('Level') as HTMLSelectElement).value).toBe('A1')
+    expect((screen.getByLabelText('Workbook') as HTMLSelectElement).value).toBe(book.id)
+
+    await user.click(screen.getByRole('button', { name: 'Study' }))
+    expect((await screen.findByRole('textbox', { name: /Ctrl K/ }) as HTMLInputElement).value).toBe('sprech')
+    expect((screen.getByLabelText('Workbook') as HTMLSelectElement).value).toBe(book.id)
+  })
+
   it('requests server-generated pronunciation for a guest preview without a recorded clip', async () => {
     mocks.getSession.mockResolvedValue({ data: { session: null }, error: null })
     const previewWorkbook = {

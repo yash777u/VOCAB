@@ -21,6 +21,38 @@ const levelColors: Record<string, string> = { A1: 'mint', A2: 'cyan', B1: 'amber
 const audioUrl = (file: string) => `/api/audio?path=${encodeURIComponent(file)}`
 const clean = (value: string | undefined) => (value ?? '').trim()
 const GUEST_SAVES_KEY = 'german-vocab-saved-words'
+const APP_LOCATION_KEY = 'german-vocab-last-location'
+const SAVED_FILTERS_KEY = 'german-vocab-saved-filters'
+type AppLocation = { workbookId: string; section: Section; search: string; page: number }
+
+function readAppLocation(): AppLocation {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(APP_LOCATION_KEY) ?? '{}') as Partial<AppLocation>
+    const section: Section = stored.section === 'saved' || stored.section === 'builder' ? stored.section : 'study'
+    return {
+      workbookId: typeof stored.workbookId === 'string' ? stored.workbookId : '',
+      section,
+      search: typeof stored.search === 'string' ? stored.search : '',
+      page: typeof stored.page === 'number' && stored.page > 0 ? Math.floor(stored.page) : 1,
+    }
+  } catch {
+    window.localStorage.removeItem(APP_LOCATION_KEY)
+    return { workbookId: '', section: 'study', search: '', page: 1 }
+  }
+}
+
+function readSavedFilters() {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(SAVED_FILTERS_KEY) ?? '{}') as { level?: unknown; workbookId?: unknown }
+    return {
+      level: typeof stored.level === 'string' ? stored.level : '',
+      workbookId: typeof stored.workbookId === 'string' ? stored.workbookId : '',
+    }
+  } catch {
+    window.localStorage.removeItem(SAVED_FILTERS_KEY)
+    return { level: '', workbookId: '' }
+  }
+}
 
 function readGuestSaves(): Record<string, SavedWord> {
   try {
@@ -37,11 +69,11 @@ function germanKeyword(values: Record<string, string>) {
 
 export default function App() {
   const [library, setLibrary] = useState<WorkbookSummary[]>([])
-  const [workbookId, setWorkbookId] = useState('')
+  const [workbookId, setWorkbookId] = useState(() => readAppLocation().workbookId)
   const [workbook, setWorkbook] = useState<WorkbookData | null>(null)
-  const [section, setSection] = useState<Section>('study')
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
+  const [section, setSection] = useState<Section>(() => readAppLocation().section)
+  const [search, setSearch] = useState(() => readAppLocation().search)
+  const [page, setPage] = useState(() => readAppLocation().page)
   const [audioMode, setAudioMode] = useState('Word → Both')
   const [savedWords, setSavedWords] = useState<Record<string, SavedWord>>({})
   const [user, setUser] = useState<User | null>(null)
@@ -127,13 +159,28 @@ export default function App() {
     }).then((books) => {
       if (!active) return
       setLibrary(books)
-      setWorkbookId(books[0]?.id ?? '')
+      const savedLocation = readAppLocation()
+      setWorkbookId(books.some((book) => book.id === savedLocation.workbookId) ? savedLocation.workbookId : books[0]?.id ?? '')
       if (!books.length) setError('No A1, A2, B1, or B2 Excel workbooks were found beside the app.')
     }).catch((cause: unknown) => {
       if (active) setError(cause instanceof Error ? cause.message : 'The vocabulary library could not be loaded.')
     }).finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
+
+  useEffect(() => {
+    if (!library.length || !library.some((book) => book.id === workbookId)) return
+    try {
+      window.localStorage.setItem(APP_LOCATION_KEY, JSON.stringify({
+        workbookId,
+        section: section === 'quiz' ? 'study' : section,
+        search,
+        page,
+      } satisfies AppLocation))
+    } catch {
+      setError('Could not remember your last workbook selection in this browser.')
+    }
+  }, [library, workbookId, section, search, page])
 
   useEffect(() => {
     if (!authReady) return
@@ -517,12 +564,17 @@ function StudyView({ workbook, activeBook, rows, totalRows, lockedRows, search, 
 }
 
 function SavedView({ entries, library, activeLevel, activeWorkbookId, onRemove, playSequence, speakGerman, playingKey }: { entries: [string, SavedWord][]; library: WorkbookSummary[]; activeLevel: string; activeWorkbookId: string; onRemove: (key: string) => void; playSequence: (paths: string[], key: string, rate?: number) => void; speakGerman: (text: string, key?: string) => void; playingKey: string }) {
-  const [levelFilter, setLevelFilter] = useState(activeLevel)
-  const initialBook = library.find((book) => book.id === activeWorkbookId && book.level === activeLevel) ?? library.find((book) => book.level === activeLevel)
-  const [workbookFilter, setWorkbookFilter] = useState(initialBook?.id ?? '')
+  const [levelFilter, setLevelFilter] = useState(() => readSavedFilters().level || activeLevel)
+  const [workbookFilter, setWorkbookFilter] = useState(() => readSavedFilters().workbookId || activeWorkbookId)
   const levelBooks = library.filter((book) => book.level === levelFilter)
   const selectedWorkbook = levelBooks.find((book) => book.id === workbookFilter) ?? levelBooks[0]
   const workbookEntries = selectedWorkbook ? savedWordsForWorkbook(entries, levelFilter, selectedWorkbook.id) : []
+
+  useEffect(() => {
+    if (!selectedWorkbook) return
+    if (workbookFilter !== selectedWorkbook.id) setWorkbookFilter(selectedWorkbook.id)
+    window.localStorage.setItem(SAVED_FILTERS_KEY, JSON.stringify({ level: levelFilter, workbookId: selectedWorkbook.id }))
+  }, [levelFilter, selectedWorkbook?.id, workbookFilter])
 
   function changeLevel(level: string) {
     setLevelFilter(level)
