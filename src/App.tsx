@@ -45,6 +45,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null)
   const [authReady, setAuthReady] = useState(false)
   const [authBusy, setAuthBusy] = useState(false)
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [expanded, setExpanded] = useState<number | null>(null)
   const [darkMode, setDarkMode] = useState(true)
   const [loading, setLoading] = useState(true)
@@ -62,6 +63,7 @@ export default function App() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const playbackToken = useRef(0)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
+  const accountMenuRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -73,6 +75,22 @@ export default function App() {
     window.addEventListener('keydown', handleShortcut)
     return () => window.removeEventListener('keydown', handleShortcut)
   }, [])
+
+  useEffect(() => {
+    if (!accountMenuOpen) return
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Node && !accountMenuRef.current?.contains(event.target)) setAccountMenuOpen(false)
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setAccountMenuOpen(false)
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [accountMenuOpen])
 
   useEffect(() => {
     if (!supabase) {
@@ -300,6 +318,7 @@ export default function App() {
     setAuthBusy(true)
     const { error: signOutError } = await supabase.auth.signOut()
     if (signOutError) setError(`Could not sign out: ${signOutError.message}`)
+    else setAccountMenuOpen(false)
     setAuthBusy(false)
   }
 
@@ -373,7 +392,14 @@ export default function App() {
           <button className={section === 'builder' ? 'active' : ''} onClick={() => setSection('builder')}><ArrowDownToLine size={16} /> Text builder</button>
         </nav>
         <div className="topbar-actions">
-          {user ? <button className="account-button" disabled={authBusy || !authReady} title={`Signed in as ${user.email ?? 'Google user'}`} onClick={() => void signOut()}><span className="account-email">{user.email ?? 'Account'}</span><LogOut size={15} /><span className="account-action-label">Sign out</span></button> : <button className="account-button" disabled={authBusy || !authReady} title={supabase ? 'Sign in with Google to sync saved words' : 'Set Supabase environment variables to enable sign-in'} onClick={() => void signInWithGoogle()}><LogIn size={15} /><span>{authBusy ? 'Connecting…' : 'Continue with Google'}</span></button>}
+          {user ? <div className="account-menu-wrap" ref={accountMenuRef}>
+            <button className="account-button" disabled={authBusy || !authReady} title="Account options" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen((open) => !open)}><span className="account-email">{user.email ?? 'Account'}</span><ChevronDown size={14} /></button>
+            {accountMenuOpen && <div className="account-menu" role="menu">
+              <span className="account-menu-label">Signed in as</span>
+              <strong className="account-menu-email">{user.email ?? 'Google account'}</strong>
+              <button className="account-signout" role="menuitem" disabled={authBusy} onClick={() => void signOut()}><LogOut size={15} />{authBusy ? 'Signing out…' : 'Sign out'}</button>
+            </div>}
+          </div> : <button className="account-button" disabled={authBusy || !authReady} title={supabase ? 'Sign in with Google to sync saved words' : 'Set Supabase environment variables to enable sign-in'} onClick={() => void signInWithGoogle()}><LogIn size={15} /><span>{authBusy ? 'Connecting…' : 'Continue with Google'}</span></button>}
           <button className="theme-toggle" title="Toggle color theme" aria-label="Toggle color theme" onClick={() => setDarkMode((value) => !value)}>{darkMode ? <Sun size={18} /> : <Moon size={18} />}</button>
         </div>
       </header>
