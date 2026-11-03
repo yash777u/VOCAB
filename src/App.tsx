@@ -463,20 +463,22 @@ export default function App() {
           <button className="quiz-launch" disabled={!workbook?.rows.length} onClick={startQuiz}><Sparkles size={17} /> Quick quiz <ArrowRight size={16} /></button>
         </section>
 
-        <section className="library-bar" aria-label="Vocabulary selection">
-          <div className="select-field level-select"><label htmlFor="level-picker">Level</label><div className="select-wrap"><span className={`level-dot ${levelColors[activeBook?.level ?? 'A1']}`} /><select id="level-picker" value={activeBook?.level ?? ''} onChange={(event) => changeWorkbook(library.find((book) => book.level === event.target.value)?.id ?? '')}>{[...new Set(library.map((book) => book.level))].map((level) => <option key={level}>{level}</option>)}</select><ChevronDown size={16} /></div></div>
-          <div className="select-field chapter-select"><label htmlFor="chapter-picker">Workbook</label><div className="select-wrap"><select id="chapter-picker" value={workbookId} onChange={(event) => changeWorkbook(event.target.value)}>{levelBooks.map((book) => <option key={book.id} value={book.id}>{book.chapter}</option>)}</select><ChevronDown size={16} /></div></div>
-          <label className="search-field"><Search size={17} /><input ref={searchInputRef} value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} placeholder="Search words, meanings, examples…" />{search && <button className="clear-search" type="button" title="Clear search" aria-label="Clear search" onClick={() => { setSearch(''); setPage(1) }}><X size={14} /></button>}<kbd>Ctrl K</kbd></label>
-        </section>
+        {section !== 'saved' && <>
+          <section className="library-bar" aria-label="Vocabulary selection">
+            <div className="select-field level-select"><label htmlFor="level-picker">Level</label><div className="select-wrap"><span className={`level-dot ${levelColors[activeBook?.level ?? 'A1']}`} /><select id="level-picker" value={activeBook?.level ?? ''} onChange={(event) => changeWorkbook(library.find((book) => book.level === event.target.value)?.id ?? '')}>{[...new Set(library.map((book) => book.level))].map((level) => <option key={level}>{level}</option>)}</select><ChevronDown size={16} /></div></div>
+            <div className="select-field chapter-select"><label htmlFor="chapter-picker">Workbook</label><div className="select-wrap"><select id="chapter-picker" value={workbookId} onChange={(event) => changeWorkbook(event.target.value)}>{levelBooks.map((book) => <option key={book.id} value={book.id}>{book.chapter}</option>)}</select><ChevronDown size={16} /></div></div>
+            <label className="search-field"><Search size={17} /><input ref={searchInputRef} value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} placeholder="Search words, meanings, examples…" />{search && <button className="clear-search" type="button" title="Clear search" aria-label="Clear search" onClick={() => { setSearch(''); setPage(1) }}><X size={14} /></button>}<kbd>Ctrl K</kbd></label>
+          </section>
 
-        {error && <div className="inline-error" role="status">{error}<button onClick={() => setError('')} aria-label="Dismiss"><X size={15} /></button></div>}
+          <section className="metric-strip" aria-label="Workbook overview">
+            <div className="metric-cell"><span>{user ? 'WORDS IN WORKBOOK' : 'WORDS AVAILABLE'}</span><strong>{workbook ? (user ? workbook.totalRows.toLocaleString() : '1') : '—'}</strong></div>
+            <div className="metric-cell"><span>AUDIO COVERAGE</span><strong>{audioCoverage}<small>%</small></strong></div>
+            <div className="metric-cell"><span>SAVED FOR LATER</span><strong>{savedEntries.length.toLocaleString()}</strong></div>
+            <div className="metric-progress"><div><span>Listen as you learn</span><strong>{audioCount.toLocaleString()} clips matched</strong></div><i><b style={{ width: `${audioCoverage}%` }} /></i></div>
+          </section>
+        </>}
 
-        <section className="metric-strip" aria-label="Workbook overview">
-          <div className="metric-cell"><span>{user ? 'WORDS IN WORKBOOK' : 'WORDS AVAILABLE'}</span><strong>{workbook ? (user ? workbook.totalRows.toLocaleString() : '1') : '—'}</strong></div>
-          <div className="metric-cell"><span>AUDIO COVERAGE</span><strong>{audioCoverage}<small>%</small></strong></div>
-          <div className="metric-cell"><span>SAVED FOR LATER</span><strong>{savedEntries.length.toLocaleString()}</strong></div>
-          <div className="metric-progress"><div><span>Listen as you learn</span><strong>{audioCount.toLocaleString()} clips matched</strong></div><i><b style={{ width: `${audioCoverage}%` }} /></i></div>
-        </section>
+        {error && <div className="inline-error" role="status"><span>{error}</span><button onClick={() => setError('')} aria-label="Dismiss"><X size={15} /></button></div>}
 
         {section === 'study' && workbook && activeBook && <StudyView workbook={workbook} activeBook={activeBook} rows={visibleRows} totalRows={accessibleRows.length} lockedRows={user ? 0 : Math.max(0, workbook.totalRows - 1)} search={search} savedWords={savedWords} page={safePage} totalPages={totalPages} pageStart={pageStart} audioMode={audioMode} setAudioMode={setAudioMode} setPage={setPage} toggleSaved={toggleSaved} playingKey={playingKey} playSequence={playSequence} speakGerman={speakGerman} requestAccess={() => setSignupPrompt(true)} expanded={expanded} setExpanded={setExpanded} />}
         {section === 'saved' && <SavedView entries={savedEntries} library={library} activeLevel={currentLevel} activeWorkbookId={workbookId} onRemove={(key) => void removeSaved(key)} playSequence={playSequence} speakGerman={speakGerman} playingKey={playingKey} />}

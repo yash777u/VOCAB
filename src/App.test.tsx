@@ -86,6 +86,25 @@ describe('signed-in account menu', () => {
     await waitFor(() => expect(mocks.signOut).toHaveBeenCalledTimes(1))
   })
 
+  it('hides the global workbook controls and metrics only in Saved', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await screen.findByRole('button', { name: /Save sprechen/ })
+    expect(screen.getByRole('region', { name: 'Vocabulary selection' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Workbook overview' })).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: /Saved/ }))
+    expect(screen.queryByRole('region', { name: 'Vocabulary selection' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Workbook overview' })).toBeNull()
+    expect(screen.getByLabelText('Level')).toBeTruthy()
+    expect(screen.getByLabelText('Workbook')).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Study' }))
+    expect(screen.getByRole('region', { name: 'Vocabulary selection' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Workbook overview' })).toBeTruthy()
+  })
+
   it('requests server-generated pronunciation for a guest preview without a recorded clip', async () => {
     mocks.getSession.mockResolvedValue({ data: { session: null }, error: null })
     const previewWorkbook = {
