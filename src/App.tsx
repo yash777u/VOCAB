@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDownToLine, ArrowLeft, ArrowRight, BookOpen, Bookmark, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Headphones, Heart, Moon, Pause, Search, Sparkles, Sun, Volume2, X } from 'lucide-react'
+import { ArrowDownToLine, ArrowLeft, ArrowRight, BookOpen, Bookmark, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Headphones, Heart, LogIn, LogOut, Moon, Pause, Search, Sparkles, Sun, Volume2, X } from 'lucide-react'
+import type { User } from '@supabase/supabase-js'
+import { supabase } from './lib/supabase'
 
 type WorkbookSummary = { id: string; level: string; chapter: string; name: string }
 type WordRow = { id: number; values: Record<string, string>; audio: { word: string | null; both: string | null } }
@@ -16,6 +18,20 @@ const PAGE_SIZE = 20
 const levelColors: Record<string, string> = { A1: 'mint', A2: 'cyan', B1: 'amber', B2: 'coral' }
 const audioUrl = (file: string) => `/api/audio?path=${encodeURIComponent(file)}`
 const clean = (value: string | undefined) => (value ?? '').trim()
+const GUEST_SAVES_KEY = 'german-vocab-saved-words'
+
+function readGuestSaves(): Record<string, SavedWord> {
+  try {
+    return JSON.parse(window.localStorage.getItem(GUEST_SAVES_KEY) ?? '{}') as Record<string, SavedWord>
+  } catch {
+    window.localStorage.removeItem(GUEST_SAVES_KEY)
+    return {}
+  }
+}
+
+function germanKeyword(values: Record<string, string>) {
+  return Object.entries(values).find(([column]) => /vocab word|verb|word|german/i.test(column))?.[1] ?? ''
+}
 
 export default function App() {
   const [library, setLibrary] = useState<WorkbookSummary[]>([])
@@ -26,6 +42,9 @@ export default function App() {
   const [page, setPage] = useState(1)
   const [audioMode, setAudioMode] = useState('Word → Both')
   const [savedWords, setSavedWords] = useState<Record<string, SavedWord>>({})
+  const [user, setUser] = useState<User | null>(null)
+  const [authReady, setAuthReady] = useState(false)
+  const [authBusy, setAuthBusy] = useState(false)
   const [expanded, setExpanded] = useState<number | null>(null)
   const [darkMode, setDarkMode] = useState(true)
   const [loading, setLoading] = useState(true)
@@ -56,6 +75,28 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    if (!supabase) {
+      setAuthReady(true)
+      return
+    }
+    let active = true
+    supabase.auth.getSession().then(({ data, error: sessionError }) => {
+      if (!active) return
+      if (sessionError) setError(sessionError.message)
+      setUser(data.session?.user ?? null)
+      setAuthReady(true)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      setAuthReady(true)
+    })
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
     let active = true
     fetch('/api/library').then(async (response) => {
       if (!response.ok) throw new Error(`The vocabulary library request failed (${response.status}).`)
@@ -64,14 +105,7 @@ export default function App() {
       return response.json() as Promise<WorkbookSummary[]>
     }).then((books) => {
       if (!active) return
-      let saved: Record<string, SavedWord> = {}
-      try {
-        saved = JSON.parse(window.localStorage.getItem('german-vocab-saved-words') ?? '{}') as Record<string, SavedWord>
-      } catch {
-        window.localStorage.removeItem('german-vocab-saved-words')
-      }
       setLibrary(books)
-      setSavedWords(saved)
       setWorkbookId(books[0]?.id ?? '')
       if (!books.length) setError('No A1, A2, B1, or B2 Excel workbooks were found beside the app.')
     }).catch((cause: unknown) => {
@@ -79,6 +113,62 @@ export default function App() {
     }).finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
+
+  useEffect(() => {
+    if (!authReady) return
+    if (!supabase || !user) {
+      setSavedWords(readGuestSaves())
+      return
+    }
+    let active = true
+    const client = supabase
+    const accountUser = user
+    async function loadAccountSaves() {
+      const guestSaves = readGuestSaves()
+      const guestRows = Object.entries(guestSaves).map(([key, item]) => {
+        const workbookId = item.workbook || key.slice(0, key.lastIndexOf('::'))
+        return {
+          user_id: accountUser.id,
+          workbook_id: workbookId,
+          row_index: item.row,
+          keyword: germanKeyword(item.values),
+          word_data: item.values,
+        }
+      }).filter((item) => item.workbook_id && item.row_index > 0)
+      if (guestRows.length) {
+        const { error: migrateError } = await client.from('saved_words').upsert(guestRows, { onConflict: 'user_id,workbook_id,row_index' })
+        if (migrateError) {
+          if (active) setError(`Could not move guest saves into your account: ${migrateError.message}`)
+          return
+        }
+        window.localStorage.removeItem(GUEST_SAVES_KEY)
+      }
+      const { data, error: loadError } = await client.from('saved_words').select('workbook_id,row_index,keyword,word_data')
+      if (!active) return
+      if (loadError) {
+        setError(`Could not load saved words: ${loadError.message}`)
+        return
+      }
+      const mapped = Object.fromEntries((data ?? []).map((item) => {
+        const workbookId = item.workbook_id
+        const source = library.find((book) => book.id === workbookId)
+        const values = item.word_data && typeof item.word_data === 'object' ? item.word_data as Record<string, string> : {}
+        const saved: SavedWord = {
+          workbook: workbookId,
+          level: source?.level ?? workbookId.split('/')[0] ?? '',
+          chapter: source?.chapter ?? workbookId.split('/').slice(1, -1).join('/'),
+          row: item.row_index,
+          values: Object.keys(values).length ? values : { 'Vocab Word': item.keyword },
+        }
+        return [`${workbookId}::${item.row_index - 1}`, saved]
+      })) as Record<string, SavedWord>
+      setSavedWords(mapped)
+    }
+    void loadAccountSaves().catch((cause: unknown) => {
+      if (active) setError(cause instanceof Error ? cause.message : 'Could not load saved words from your account.')
+    })
+    return () => { active = false }
+  }, [authReady, library, user])
 
   useEffect(() => {
     if (!workbookId) return
@@ -155,17 +245,62 @@ export default function App() {
     window.speechSynthesis.speak(utterance)
   }
 
-  function persistSaved(next: Record<string, SavedWord>) {
-    setSavedWords(next)
-    window.localStorage.setItem('german-vocab-saved-words', JSON.stringify(next))
-  }
-
-  function toggleSaved(row: WordRow, book: WorkbookSummary) {
+  async function toggleSaved(row: WordRow, book: WorkbookSummary) {
     const key = `${book.id}::${row.id}`
     const next = { ...savedWords }
-    if (next[key]) delete next[key]
+    const removing = Boolean(next[key])
+    if (removing) delete next[key]
     else next[key] = { workbook: book.id, level: book.level, chapter: book.chapter, row: row.id + 1, values: row.values, audio: row.audio }
-    persistSaved(next)
+    setSavedWords(next)
+    if (!user || !supabase) {
+      window.localStorage.setItem(GUEST_SAVES_KEY, JSON.stringify(next))
+      return
+    }
+    const result = removing
+      ? await supabase.from('saved_words').delete().eq('user_id', user.id).eq('workbook_id', book.id).eq('row_index', row.id + 1)
+      : await supabase.from('saved_words').upsert({ user_id: user.id, workbook_id: book.id, row_index: row.id + 1, keyword: germanKeyword(row.values), word_data: row.values }, { onConflict: 'user_id,workbook_id,row_index' })
+    if (result.error) setError(`Could not update your saved words: ${result.error.message}`)
+  }
+
+  async function removeSaved(key: string) {
+    const item = savedWords[key]
+    if (!item) return
+    const next = { ...savedWords }
+    delete next[key]
+    setSavedWords(next)
+    if (!user || !supabase) {
+      window.localStorage.setItem(GUEST_SAVES_KEY, JSON.stringify(next))
+      return
+    }
+    const { error: deleteError } = await supabase.from('saved_words').delete()
+      .eq('user_id', user.id)
+      .eq('workbook_id', item.workbook)
+      .eq('row_index', item.row)
+    if (deleteError) setError(`Could not remove the saved word: ${deleteError.message}`)
+  }
+
+  async function signInWithGoogle() {
+    if (!supabase) {
+      setError('Add the VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY environment variables to enable Google sign-in.')
+      return
+    }
+    setAuthBusy(true)
+    const { error: signInError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
+    if (signInError) {
+      setError(`Google sign-in failed: ${signInError.message}`)
+      setAuthBusy(false)
+    }
+  }
+
+  async function signOut() {
+    if (!supabase) return
+    setAuthBusy(true)
+    const { error: signOutError } = await supabase.auth.signOut()
+    if (signOutError) setError(`Could not sign out: ${signOutError.message}`)
+    setAuthBusy(false)
   }
 
   function changeWorkbook(id: string) {
@@ -237,7 +372,10 @@ export default function App() {
           <button className={section === 'saved' ? 'active' : ''} onClick={() => setSection('saved')}><Bookmark size={16} /> Saved <span className="nav-count">{savedEntries.length}</span></button>
           <button className={section === 'builder' ? 'active' : ''} onClick={() => setSection('builder')}><ArrowDownToLine size={16} /> Text builder</button>
         </nav>
-        <button className="theme-toggle" title="Toggle color theme" aria-label="Toggle color theme" onClick={() => setDarkMode((value) => !value)}>{darkMode ? <Sun size={18} /> : <Moon size={18} />}</button>
+        <div className="topbar-actions">
+          {user ? <button className="account-button" disabled={authBusy || !authReady} title={`Signed in as ${user.email ?? 'Google user'}`} onClick={() => void signOut()}><span className="account-email">{user.email ?? 'Account'}</span><LogOut size={15} /><span className="account-action-label">Sign out</span></button> : <button className="account-button" disabled={authBusy || !authReady} title={supabase ? 'Sign in with Google to sync saved words' : 'Set Supabase environment variables to enable sign-in'} onClick={() => void signInWithGoogle()}><LogIn size={15} /><span>{authBusy ? 'Connecting…' : 'Continue with Google'}</span></button>}
+          <button className="theme-toggle" title="Toggle color theme" aria-label="Toggle color theme" onClick={() => setDarkMode((value) => !value)}>{darkMode ? <Sun size={18} /> : <Moon size={18} />}</button>
+        </div>
       </header>
 
       <main className="workspace">
@@ -262,7 +400,7 @@ export default function App() {
         </section>
 
         {section === 'study' && workbook && activeBook && <StudyView workbook={workbook} activeBook={activeBook} rows={visibleRows} totalRows={filteredRows.length} savedWords={savedWords} page={safePage} totalPages={totalPages} pageStart={pageStart} audioMode={audioMode} setAudioMode={setAudioMode} setPage={setPage} toggleSaved={toggleSaved} playingKey={playingKey} playSequence={playSequence} speakGerman={speakGerman} expanded={expanded} setExpanded={setExpanded} />}
-        {section === 'saved' && <SavedView entries={savedEntries} onRemove={(key) => { const next = { ...savedWords }; delete next[key]; persistSaved(next) }} playSequence={playSequence} speakGerman={speakGerman} playingKey={playingKey} />}
+        {section === 'saved' && <SavedView entries={savedEntries} onRemove={(key) => void removeSaved(key)} playSequence={playSequence} speakGerman={speakGerman} playingKey={playingKey} />}
         {section === 'builder' && workbook && <BuilderView workbook={workbook} rows={visibleRows} pageStart={pageStart} selectedRows={selectedTextRows} setSelectedRows={setSelectedTextRows} selectedFields={selectedFields} setSelectedFields={setSelectedFields} fieldSeparator={fieldSeparator} setFieldSeparator={setFieldSeparator} rowSeparator={rowSeparator} setRowSeparator={setRowSeparator} textOutput={textOutput} setTextOutput={setTextOutput} buildText={buildText} downloadText={downloadText} />}
         {section === 'quiz' && workbook && <QuizView rows={visibleRows} workbook={workbook} index={quizIndex} score={quizScore} answers={quizAnswers} options={quizOptions} isDone={isQuizDone} answer={answerQuiz} next={nextQuiz} back={() => setSection('study')} playSequence={playSequence} playingKey={playingKey} />}
         <footer className="app-footer"><span><Headphones size={14} /> Built for steady progress</span><span>DeutschFlash <i /> A1–B2</span></footer>

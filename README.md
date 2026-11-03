@@ -14,7 +14,45 @@ The app discovers `.xlsx` workbooks recursively under `A1/`, `A2/`, `B1/`, and `
 
 Numbered audio files are matched to workbook row numbers, for example `single/1_guten Tag.mp3` or `both/1_guten Tag.mp3`. The row audio selector can play the word clip, the combined clip, or both in sequence. Audio files under a `Sentences/` folder are shown as separate full-track players.
 
-Saved words are written to the local `saved_words.json` file and are excluded from Git. The text builder exports selected workbook fields as a `.txt` file.
+Guest saved words stay in this browser. Once signed in, saved words are synced to the Supabase `public.saved_words` table under the Google account, keyed by workbook path and row number. The text builder exports selected workbook fields as a `.txt` file.
+
+## Supabase Google sign-in and saved words
+
+This is a Vite/React app, so it uses the Supabase browser client and `VITE_` environment variable names. It does not use the Next.js server, cookies, or middleware examples from Supabase's Next.js guide.
+
+The Supabase project URL and publishable key are in the ignored local `.env.local` file. Copy `.env.example` when configuring another development machine. In Vercel, add these environment variables for Production and Preview, then redeploy:
+
+| Variable | Value |
+|---|---|
+| `VITE_SUPABASE_URL` | `https://npuvulfovyoxoviulooh.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | The project's Supabase publishable key |
+
+In Supabase → Authentication → Providers → Google, enable Google and enter the Google OAuth client ID and secret. In Google Cloud Console, add this authorized redirect URI to the OAuth client:
+
+```text
+https://npuvulfovyoxoviulooh.supabase.co/auth/v1/callback
+```
+
+In Google Cloud Console, add the app origins `http://localhost:5173` and `https://germanv2.vercel.app`. In Supabase → Authentication → URL Configuration, set the production Site URL to `https://germanv2.vercel.app` and add these Redirect URLs:
+
+```text
+http://localhost:5173/**
+https://germanv2.vercel.app/**
+https://*.vercel.app/**
+```
+
+The app's Google sign-in redirects back to the current site origin. Configure the production and preview domains in Supabase's redirect allowlist before testing OAuth.
+
+The saved-words upsert uses the composite key `(user_id, workbook_id, row_index)`. RLS must allow authenticated users to select, insert, update, and delete only their own rows. If you already ran the table SQL from setup but it did not include an update policy, run this once in Supabase → SQL Editor:
+
+```sql
+create policy "Users can update their saved words"
+on public.saved_words for update to authenticated
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
+```
+
+Do not add a Google client secret or Supabase service-role key to `.env.local`, Vercel `VITE_` variables, or browser code. The publishable key is intended for browser use when RLS is enabled.
 
 ## Project commands
 
